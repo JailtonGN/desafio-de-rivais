@@ -1,0 +1,127 @@
+{
+  "buque": {
+    "contador": 1,
+    "ordem": 1
+  },
+  "__ordem__": 31,
+  "bolacha": {
+    "contador": 1,
+    "ordem": 2
+  },
+  "ostensório": {
+    "contador": 1,
+    "ordem": 3
+  },
+  "antiquado": {
+    "contador": 1,
+    "ordem": 4
+  },
+  "mandamentos": {
+    "contador": 1,
+    "ordem": 5
+  },
+  "aspiração": {
+    "contador": 1,
+    "ordem": 6
+  },
+  "paralelepipedal": {
+    "contador": 1,
+    "ordem": 7
+  },
+  "massageador": {
+    "contador": 1,
+    "ordem": 8
+  },
+  "psicólogo": {
+    "contador": 1,
+    "ordem": 9
+  },
+  "zoológico": {
+    "contador": 1,
+    "ordem": 10
+  },
+  "enfermaria": {
+    "contador": 1,
+    "ordem": 11
+  },
+  "usurpadora": {
+    "contador": 1,
+    "ordem": 12
+  },
+  "goleiro": {
+    "contador": 1,
+    "ordem": 13
+  },
+  "pioneiro": {
+    "contador": 1,
+    "ordem": 14
+  },
+  "viralizado": {
+    "contador": 1,
+    "ordem": 15
+  },
+  "acochambrado": {
+    "contador": 1,
+    "ordem": 16
+  },
+  "caderno": {
+    "contador": 1,
+    "ordem": 17
+  },
+  "octógono": {
+    "contador": 1,
+    "ordem": 18
+  },
+  "ortografia": {
+    "contador": 1,
+    "ordem": 19
+  },
+  "centauro": {
+    "contador": 1,
+    "ordem": 20
+  },
+  "otorrinolaringologia": {
+    "contador": 1,
+    "ordem": 21
+  },
+  "bumerangue": {
+    "contador": 1,
+    "ordem": 22
+  },
+  "institucionalização": {
+    "contador": 1,
+    "ordem": 23
+  },
+  "amor": {
+    "contador": 2,
+    "ordem": 24
+  },
+  "medo": {
+    "contador": 1,
+    "ordem": 25
+  },
+  "ceci": {
+    "contador": 1,
+    "ordem": 26
+  },
+  "moda": {
+    "contador": 1,
+    "ordem": 27
+  },
+  "lousa": {
+    "contador": 1,
+    "ordem": 28
+  },
+  "pato": {
+    "contador": 4,
+    "ordem": 29
+  },
+  "cafe": {
+    "contador": 1,
+    "ordem": 30
+  },
+  "bombo": {
+    "contador": 1,
+    "ordem": 31
+  }
+}

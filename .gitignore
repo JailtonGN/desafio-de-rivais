@@ -1,0 +1,29 @@
+# Arquivos de log
+*.log
+game_log.txt
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Arquivos de cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos de configuração local
+.env
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arquivos de backup
+*.bak
+*.backup 

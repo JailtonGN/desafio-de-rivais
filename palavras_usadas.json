@@ -1,0 +1,33 @@
+{
+  "Fácil": [
+    "sólio",
+    "fruta",
+    "irmã",
+    "rosa",
+    "canoa",
+    "pizza"
+  ],
+  "Médio": [
+    "computador",
+    "tejuaçu",
+    "joníaco",
+    "nivoso",
+    "cadeixo",
+    "medalha",
+    "celense",
+    "escova",
+    "vauense",
+    "branco",
+    "amarelo",
+    "aranha",
+    "número",
+    "vizinho",
+    "palavra",
+    "celular",
+    "estação"
+  ],
+  "Difícil": [
+    "cozinhar",
+    "estreito"
+  ]
+}

@@ -1,0 +1,112 @@
+{
+    "comum_on": {
+        "F\u00e1cil": [
+            {
+                "nome": "CRIS",
+                "tempo": 3.417421340942383,
+                "erros": 0,
+                "palavra": "ROSA"
+            },
+            {
+                "nome": "MAX",
+                "tempo": 5.026150226593018,
+                "erros": 0,
+                "palavra": "PIZZA"
+            },
+            {
+                "nome": "MAX",
+                "tempo": 11.541579246520996,
+                "erros": 1,
+                "palavra": "IRM\u00c3"
+            },
+            {
+                "nome": "JUNIOR",
+                "tempo": 16.379054307937622,
+                "erros": 0,
+                "palavra": "CANOA"
+            }
+        ],
+        "M\u00e9dio": [
+            {
+                "nome": "CECI",
+                "tempo": 5.8276848793029785,
+                "erros": 0,
+                "palavra": "PALAVRA"
+            },
+            {
+                "nome": "CECI",
+                "tempo": 6.428725957870483,
+                "erros": 0,
+                "palavra": "CELULAR"
+            },
+            {
+                "nome": "CECI",
+                "tempo": 6.833467721939087,
+                "erros": 0,
+                "palavra": "VIZINHO"
+            },
+            {
+                "nome": "JAILTON",
+                "tempo": 10.854330062866211,
+                "erros": 0,
+                "palavra": "BRANCO"
+            },
+            {
+                "nome": "CECI",
+                "tempo": 15.974561214447021,
+                "erros": 0,
+                "palavra": "N\u00daMERO"
+            },
+            {
+                "nome": "CECI",
+                "tempo": 51.416709423065186,
+                "erros": 3,
+                "palavra": "ESTA\u00c7\u00c3O"
+            },
+            {
+                "nome": "CECI",
+                "tempo": 53.17449617385864,
+                "erros": 7,
+                "palavra": "ARANHA"
+            },
+            {
+                "nome": "GERCINO",
+                "tempo": 83.09007501602173,
+                "erros": 3,
+                "palavra": "AMARELO"
+            },
+            {
+                "nome": "CRIST",
+                "tempo": 114.89342784881592,
+                "erros": 5,
+                "palavra": "ESCOVA"
+            }
+        ],
+        "Dif\u00edcil": [
+            {
+                "nome": "CRISTI",
+                "tempo": 59.0741548538208,
+                "erros": 1,
+                "palavra": "COZINHAR"
+            },
+            {
+                "nome": "CRISTI",
+                "tempo": 60.26826238632202,
+                "erros": 1,
+                "palavra": "ESTREITO"
+            }
+        ]
+    },
+    "comum_off": {
+        "F\u00e1cil": [],
+        "M\u00e9dio": [
+            {
+                "nome": "MARIE",
+                "tempo": 126.40639853477478,
+                "erros": 8,
+                "palavra": "VAUENSE"
+            }
+        ],
+        "Dif\u00edcil": []
+    }
+}
