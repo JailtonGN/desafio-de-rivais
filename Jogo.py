@@ -538,7 +538,7 @@ class GameApp:
             'acerto_letra.wav': 'som_acerto',
             'erro_letra.wav': 'som_erro', 
             'vitoria_palavra.wav': 'som_vitoria_palavra',
-            'musica_menu.wav': 'musica_menu',
+            'musica_menu.mp3': 'musica_menu',
             'teclado.wav': 'som_teclado',
             'fim_jogo.wav': 'som_fim_jogo',
             'iniciar_rodada.wav': 'som_iniciar_rodada'
