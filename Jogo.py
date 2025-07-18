@@ -951,16 +951,9 @@ class GameApp:
             if not VERIFICAR_DEFINICAO_ONLINE:
                 return True
             try:
-                url = f'https://dicio-api.vercel.app/v2/{palavra.lower()}'
-                resp = requests.get(url, timeout=3)
-                if resp.status_code == 200:
-                    return True
-            except Exception:
-                pass
-            try:
-                url_wikt = f'https://pt.wiktionary.org/wiki/{palavra.lower()}'
-                resp = requests.get(url_wikt, timeout=3)
-                if resp.status_code == 200 and 'pt.wiktionary.org' in resp.url:
+                url_dicio = f'https://www.dicio.com.br/{palavra.lower()}/'
+                resp = requests.get(url_dicio, timeout=3)
+                if resp.status_code == 200 and 'www.dicio.com.br' in resp.url and 'Não encontrado' not in resp.text:
                     return True
             except Exception:
                 pass
@@ -1022,16 +1015,21 @@ class GameApp:
     def mostrar_carregando_palavra(self):
         self.janela_carregando = tk.Toplevel(self.root)
         self.janela_carregando.title("Carregando palavra...")
-        largura, altura = 320, 120
-        x = (self.root.winfo_screenwidth() // 2) - (largura // 2)
-        y = (self.root.winfo_screenheight() // 2) - (altura // 2)
-        self.janela_carregando.geometry(f"{largura}x{altura}+{x}+{y}")
         self.janela_carregando.resizable(False, False)
         self.janela_carregando.transient(self.root)
         self.janela_carregando.grab_set()
         self.janela_carregando.config(bg=COR_FUNDO_PRINCIPAL)
         label = tk.Label(self.janela_carregando, text="Carregando palavra...", font=("Arial", 16, "bold"), fg=COR_TEXTO_CLARO, bg=COR_FUNDO_PRINCIPAL)
         label.pack(expand=True, pady=30)
+        self.janela_carregando.update_idletasks()
+        largura = self.janela_carregando.winfo_width()
+        altura = self.janela_carregando.winfo_height()
+        x = (self.janela_carregando.winfo_screenwidth() // 2) - (largura // 2)
+        y = (self.janela_carregando.winfo_screenheight() // 2) - (altura // 2)
+        self.janela_carregando.geometry(f"{largura}x{altura}+{x}+{y}")
+        self.janela_carregando.overrideredirect(True)
+        self.janela_carregando.lift()
+        self.janela_carregando.focus_force()
         self._carregando_animar = True
         def animar():
             if not self._carregando_animar:
@@ -1953,9 +1951,71 @@ class GameApp:
         # Botão para ver definição da palavra
         def mostrar_definicao():
             palavra = jogador['palavra_a_adivinhar']
-            import webbrowser
-            url = f"https://pt.wiktionary.org/wiki/{palavra.lower()}"
-            webbrowser.open(url)
+            import requests
+            from bs4 import BeautifulSoup
+            url = f"https://www.dicio.com.br/{palavra.lower()}/"
+            try:
+                resp = requests.get(url, timeout=5)
+                if resp.status_code == 200:
+                    soup = BeautifulSoup(resp.text, 'html.parser')
+                    definicao_tag = soup.find('p', class_='significado')
+                    if definicao_tag:
+                        definicao = definicao_tag.get_text(strip=True)
+                    else:
+                        # fallback: pega o primeiro <p> após o título
+                        p_tags = soup.find_all('p')
+                        definicao = p_tags[0].get_text(strip=True) if p_tags else 'Definição não encontrada.'
+                else:
+                    definicao = 'Definição não encontrada.'
+            except Exception:
+                definicao = 'Erro ao buscar definição.'
+            # Exibe popup com a definição
+            popup = tk.Toplevel(self.root)
+            popup.title("")
+            largura, altura = 540, 440  # altura aumentada
+            COR_FUNDO_POPUP = "#e6dfc3"  # um bege mais escuro
+            popup.geometry(f'{largura}x{altura}')
+            popup.config(bg=COR_FUNDO_POPUP)
+            popup.resizable(False, False)
+            popup.overrideredirect(True)
+            # Centraliza o popup na tela
+            x = (self.root.winfo_screenwidth() // 2) - (largura // 2)
+            y = (self.root.winfo_screenheight() // 2) - (altura // 2)
+            popup.geometry(f"{largura}x{altura}+{x}+{y}")
+            # Estilo da Scrollbar
+            style = ttk.Style()
+            style.configure("Custom.Vertical.TScrollbar",
+                            background=COR_FUNDO_POPUP,
+                            troughcolor=COR_FUNDO_POPUP,
+                            bordercolor=COR_FUNDO_POPUP,
+                            arrowcolor=COR_TEXTO_CLARO)
+            # Frame principal
+            frame = tk.Frame(popup, bg=COR_FUNDO_POPUP)
+            frame.pack(expand=True, fill=tk.BOTH)
+            tk.Label(frame, text=palavra, font=("Arial", 22, "bold"), fg=COR_TEXTO_CLARO, bg=COR_FUNDO_POPUP).pack(pady=(18, 8))
+            # Frame para área rolável
+            scroll_area = tk.Frame(frame, bg=COR_FUNDO_POPUP)
+            scroll_area.pack(expand=True, fill=tk.BOTH, padx=20, pady=(0, 0))
+            canvas = tk.Canvas(scroll_area, bg=COR_FUNDO_POPUP, highlightthickness=0)
+            scrollbar = ttk.Scrollbar(scroll_area, orient="vertical", command=canvas.yview, style="Custom.Vertical.TScrollbar")
+            canvas.configure(yscrollcommand=scrollbar.set)
+            canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            # Frame interno para o texto
+            scroll_frame = tk.Frame(canvas, bg=COR_FUNDO_POPUP)
+            canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
+            def on_frame_configure(event):
+                canvas.configure(scrollregion=canvas.bbox("all"))
+            scroll_frame.bind("<Configure>", on_frame_configure)
+            # Permitir rolagem com o mouse
+            def _on_mousewheel(event):
+                canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+            tk.Label(scroll_frame, text=definicao, font=("Arial", 14), fg=COR_TEXTO_CLARO, bg=COR_FUNDO_POPUP, wraplength=480, justify=tk.CENTER).pack(pady=(0, 0), padx=0)
+            # Botão fechar centralizado fora da área rolável
+            btn_fechar = ttk.Button(frame, text="Fechar", command=popup.destroy, style="TButton")
+            btn_fechar.pack(pady=18)
+
         ttk.Button(content_frame, text='Ver definição', command=mostrar_definicao, style='TButton').pack(pady=5)
 
         # Exibe apenas o ranking da dificuldade jogada
@@ -1972,7 +2032,7 @@ class GameApp:
                 erros_rank = str(entrada['erros']) if isinstance(entrada['erros'], int) else str(entrada['erros'])
                 palavra_rank = entrada.get('palavra', 'N/A').upper()
                 ranking_texto += f"{i+1}. {entrada['nome']} - {palavra_rank} - {tempo_rank} - {erros_rank} erros\n"
-            tk.Label(content_frame, text=ranking_texto, font=("Arial", 10), bg=COR_FUNDO_PRINCIPAL, fg=COR_TEXTO_CLARO, justify=tk.CENTER).pack(pady=3)
+            tk.Label(content_frame, text=ranking_texto, font=("Arial", 14, "bold"), bg=COR_FUNDO_PRINCIPAL, fg=COR_TEXTO_CLARO, justify=tk.CENTER).pack(pady=3)
         else:
             tk.Label(content_frame, text="NENHUM REGISTRO AINDA.", font=("Arial", 10), bg=COR_FUNDO_PRINCIPAL, fg=COR_TEXTO_CLARO).pack(pady=3)
 
@@ -2454,30 +2514,13 @@ class GameApp:
                     definicao = '\n'.join(significados)
                     return definicao
         except Exception:
-            pass  # Ignora erro e tenta Wiktionary
-        # Tenta Wiktionary
+            pass  # Ignora erro e tenta Dicio
+        # Tenta Dicio
         try:
-            url_wikt = f'https://pt.wiktionary.org/wiki/{palavra.lower()}'
+            url_wikt = f'https://www.dicio.com.br/{palavra.lower()}/'
             response = requests.get(url_wikt, timeout=5)
-            if response.status_code == 200:
-                from bs4 import BeautifulSoup, Tag
-                soup = BeautifulSoup(response.text, 'html.parser')
-                # Procura a primeira definição em <ol><li> dentro da seção 'Português'
-                secao_pt = soup.find('span', {'id': 'Português'})
-                if secao_pt:
-                    # Primeiro tenta <ol><li>
-                    ol = secao_pt.find_next('ol')
-                    if isinstance(ol, Tag):
-                        lis = ol.find_all('li', recursive=False)
-                        if lis:
-                            definicao = lis[0].get_text(strip=True)
-                            return f'Definição (Wiktionary):\n{definicao}'
-                    # Se não achou <ol><li>, pega o primeiro <p> após a seção
-                    p = secao_pt.find_next('p')
-                    if isinstance(p, Tag):
-                        texto = p.get_text(strip=True)
-                        if texto:
-                            return f'Definição (Wiktionary):\n{texto}'
+            if response.status_code == 200 and 'www.dicio.com.br' in response.url:
+                return f'Definição (Dicio):\n{response.text}'
         except Exception:
             pass
         return None
