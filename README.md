@@ -2,6 +2,9 @@
 
 Jogo de adivinhação de palavras em Python, com modos solo e multiplayer, ranking, integração com o Dicio para definições e interface amigável.
 
+![Tela do Menu Principal](imagens/tela_menu.png)
+*Exemplo da tela de menu principal do jogo*
+
 ## Funcionalidades
 - Modo Solo: adivinhe palavras sorteadas pelo sistema, com ranking e dificuldade.
 - Modo Multiplayer: jogue com amigos, cada um define uma palavra para o outro adivinhar.
