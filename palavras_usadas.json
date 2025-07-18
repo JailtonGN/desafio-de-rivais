@@ -5,7 +5,26 @@
     "irmã",
     "rosa",
     "canoa",
-    "pizza"
+    "pizza",
+    "macio",
+    "claro",
+    "trem",
+    "short",
+    "museu",
+    "ganso",
+    "feio",
+    "liso",
+    "carro",
+    "areia",
+    "lavar",
+    "azul",
+    "baixo",
+    "curto",
+    "amigo",
+    "bolo",
+    "cama",
+    "preto",
+    "falar"
   ],
   "Médio": [
     "computador",
@@ -24,10 +43,15 @@
     "vizinho",
     "palavra",
     "celular",
-    "estação"
+    "estação",
+    "cornija"
   ],
   "Difícil": [
     "cozinhar",
-    "estreito"
+    "estreito",
+    "conversa",
+    "narigudo",
+    "ismaquias",
+    "piroxenito"
   ]
 }

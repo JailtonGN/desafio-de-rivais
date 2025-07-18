@@ -2,6 +2,12 @@
     "comum_on": {
         "F\u00e1cil": [
             {
+                "nome": "MAX",
+                "tempo": 2.4115827083587646,
+                "erros": 0,
+                "palavra": "BOLO"
+            },
+            {
                 "nome": "CRIS",
                 "tempo": 3.417421340942383,
                 "erros": 0,
@@ -15,15 +21,45 @@
             },
             {
                 "nome": "MAX",
+                "tempo": 5.52519154548645,
+                "erros": 0,
+                "palavra": "BAIXO"
+            },
+            {
+                "nome": "MAX",
+                "tempo": 7.036691427230835,
+                "erros": 0,
+                "palavra": "FALAR"
+            },
+            {
+                "nome": "MAX",
+                "tempo": 9.228284358978271,
+                "erros": 1,
+                "palavra": "CARRO"
+            },
+            {
+                "nome": "MAX",
+                "tempo": 9.430322408676147,
+                "erros": 1,
+                "palavra": "LAVAR"
+            },
+            {
+                "nome": "MAX",
+                "tempo": 10.5379798412323,
+                "erros": 1,
+                "palavra": "MACIO"
+            },
+            {
+                "nome": "MAX",
                 "tempo": 11.541579246520996,
                 "erros": 1,
                 "palavra": "IRM\u00c3"
             },
             {
-                "nome": "JUNIOR",
-                "tempo": 16.379054307937622,
-                "erros": 0,
-                "palavra": "CANOA"
+                "nome": "MAX",
+                "tempo": 11.724607229232788,
+                "erros": 2,
+                "palavra": "LISO"
             }
         ],
         "M\u00e9dio": [
@@ -84,6 +120,12 @@
         ],
         "Dif\u00edcil": [
             {
+                "nome": "EUDES",
+                "tempo": 20.073819875717163,
+                "erros": 1,
+                "palavra": "CONVERSA"
+            },
+            {
                 "nome": "CRISTI",
                 "tempo": 59.0741548538208,
                 "erros": 1,
@@ -101,12 +143,37 @@
         "F\u00e1cil": [],
         "M\u00e9dio": [
             {
+                "nome": "JAILTON",
+                "tempo": 74.24665880203247,
+                "erros": 8,
+                "palavra": "CORNIJA"
+            },
+            {
                 "nome": "MARIE",
                 "tempo": 126.40639853477478,
                 "erros": 8,
                 "palavra": "VAUENSE"
             }
         ],
-        "Dif\u00edcil": []
+        "Dif\u00edcil": [
+            {
+                "nome": "MAX",
+                "tempo": 59.7410454750061,
+                "erros": 3,
+                "palavra": "NARIGUDO"
+            },
+            {
+                "nome": "JAILTON",
+                "tempo": 62.32199788093567,
+                "erros": 7,
+                "palavra": "ISMAQUIAS"
+            },
+            {
+                "nome": "MAX",
+                "tempo": 75.71432399749756,
+                "erros": 10,
+                "palavra": "PIROXENITO"
+            }
+        ]
     }
 }

@@ -13,7 +13,7 @@
         "tooltips_ativados": true
     },
     "jogo": {
-        "dificuldade_padrao": "Médio",
+        "dificuldade_padrao": "Fácil",
         "penalidade_erro": 3.0,
         "tempo_limite": 0,
         "mostrar_dicas": true,

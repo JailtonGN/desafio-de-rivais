@@ -39,7 +39,7 @@ No multiplayer, a dificuldade não limita o tamanho da palavra (apenas 4 a 20 le
 - Sugestão de palavras e correção ortográfica
 - Ranking solo (Top 10 por dificuldade)
 - Ranking multiplayer (palavras mais usadas)
-- Definição online (Wiktionary)
+- Definição online (Dicio)
 - Sons e música customizáveis
 - Tema visual confortável (amarelo pastel)
 - Persistência de palavras já sorteadas (evita repetição)
@@ -79,7 +79,7 @@ No multiplayer, a dificuldade não limita o tamanho da palavra (apenas 4 a 20 le
 - Use as letras embaralhadas para ajudar na adivinhação.
 - Errar uma letra adiciona penalidade de tempo.
 - No multiplayer, escolha palavras que os outros jogadores conheçam!
-- O botão "Ver definição" abre a página do Wiktionary para a palavra.
+- O botão "Ver definição" abre a página do Dicio para a palavra.
 - O jogo salva seu progresso e ranking automaticamente.
 
 ---
