@@ -113,4 +113,9 @@ Thumbs.db
 # Game specific
 *.save
 *.sav
-game_saves/ 
+game_saves/
+
+# PyInstaller build files
+build/
+dist/
+*.spec 

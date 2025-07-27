@@ -1,0 +1,37 @@
+===========================================
+DESAFIO DE RIVAIS 2.0 - INSTRUÇÕES DE INSTALAÇÃO
+===========================================
+
+🎮 COMO JOGAR:
+1. Execute o arquivo "Desafio_de_Rivais_2.0.exe"
+2. O jogo abrirá automaticamente em tela cheia
+3. Use o mouse para navegar pelos menus
+4. Digite as letras para adivinhar as palavras
+
+📁 ARQUIVOS INCLUÍDOS:
+- Desafio_de_Rivais_2.0.exe (executável principal)
+- sons/ (pasta com efeitos sonoros)
+- imagens/ (pasta com imagens do jogo)
+- *.json (arquivos de configuração e dados)
+- *.txt (arquivos de log e texto)
+
+🔄 MODOS DE JOGO:
+- SOLO: Adivinhe palavras sorteadas pelo sistema
+- MULTIPLAYER: Jogue com amigos definindo palavras
+
+⚙️ CONFIGURAÇÕES:
+- O jogo salva automaticamente suas configurações
+- Ranking é mantido entre sessões
+- Sons podem ser ajustados nas configurações
+
+🚨 SOLUÇÃO DE PROBLEMAS:
+- Se o jogo não abrir, verifique se o antivírus não bloqueou
+- Certifique-se de que todos os arquivos estão na mesma pasta
+- Para sair do jogo, use Alt+F4 ou ESC no menu principal
+
+📞 SUPORTE:
+- Repositório: https://github.com/JailtonGN/desafio-de-rivais
+- Versão: 2.0.0
+- Desenvolvido com Python e Pygame
+
+Divirta-se e desafie seus rivais! 🚀 
