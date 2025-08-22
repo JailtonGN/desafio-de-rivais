@@ -25,8 +25,30 @@ from interface import (
 import difflib
 import math
 
+# Definir diretório base do projeto
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Inicialização do Pygame
 pygame.init()
+
+# Inicialização do mixer de áudio (deve vir antes de usar sons)
+pygame.mixer.init()
+
+# Carregar efeitos sonoros logo após inicialização
+try:
+    SOM_ACERTO = pygame.mixer.Sound(os.path.join(BASE_DIR, 'sons', 'acerto_letra.wav'))
+    SOM_ERRO = pygame.mixer.Sound(os.path.join(BASE_DIR, 'sons', 'erro_letra.wav'))
+    SOM_INICIAR = pygame.mixer.Sound(os.path.join(BASE_DIR, 'sons', 'iniciar_rodada.wav'))
+    SOM_FIM = pygame.mixer.Sound(os.path.join(BASE_DIR, 'sons', 'fim_jogo.wav'))
+    SOM_VITORIA = pygame.mixer.Sound(os.path.join(BASE_DIR, 'sons', 'vitoria_palavra.wav'))
+    SOM_CLIQUE = pygame.mixer.Sound(os.path.join(BASE_DIR, 'sons', 'teclado.wav'))
+except pygame.error as e:
+    print(f"Erro ao carregar sons: {e}")
+    # Criar sons vazios como fallback
+    SOM_ACERTO = SOM_ERRO = SOM_INICIAR = SOM_FIM = SOM_VITORIA = SOM_CLIQUE = None
+
+# Música de fundo
+MUSICA_MENU_PATH = os.path.join(BASE_DIR, 'sons', 'musica_menu.mp3')
 
 # Configurações de tela
 WIDTH, HEIGHT = 1920, 1080
@@ -104,6 +126,14 @@ FEEDBACK_ERRO_DURATION = 350  # ms
 feedback_erro_circulo_idx = -1
 feedback_erro_circulo_timer = 0
 
+# Variáveis de controle de estado global
+som_iniciar_tocou = False
+som_fim_tocou = False
+fim_rodada_anterior = False
+rodada_finalizada = False
+mensagem_config = ""
+mensagem_timer = 0
+
 # Dicionário de palavras por dificuldade
 
 def embaralhar_palavra(palavra):
@@ -127,30 +157,35 @@ def carregar_dicionario_arquivo():
                         palavra = palavra.split('/')[0]
                     if 4 <= len(palavra) <= 20:
                         palavras.append(palavra.upper())
-        except Exception:
-            pass
+        except (FileNotFoundError, UnicodeDecodeError, IOError) as e:
+            print(f"Erro ao carregar dicionário {caminho_dic}: {e}")
     return palavras
 
 # Carregar dicionário ao iniciar
 import json
 import os
-ARQUIVO_PALAVRAS_JSON = r"C:\Users\jailt\OneDrive\Documentos\meusjogos\Desafio_deRivais_2.0\palavras.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ARQUIVO_PALAVRAS_JSON = os.path.join(BASE_DIR, "palavras.json")
+
+# Definir caminhos de arquivos essenciais
+PALAVRAS_USADAS_PATH = os.path.join(BASE_DIR, 'palavras_usadas.json')
+CONFIG_PATH = os.path.join(BASE_DIR, 'configuracoes.json')
 if os.path.exists(ARQUIVO_PALAVRAS_JSON):
     with open(ARQUIVO_PALAVRAS_JSON, "r", encoding="utf-8") as f:
         palavras_dicionario = json.load(f)
     print("Usando palavras do arquivo palavras.json!")
 else:
-    raise FileNotFoundError("Arquivo de palavras não encontrado!")
+    raise FileNotFoundError(f"Arquivo de palavras não encontrado! Esperado em: {ARQUIVO_PALAVRAS_JSON}")
 
 # Carregar dicionário de palavras mais buscadas, se existir
 ARQUIVO_MAIS_BUSCADAS = "palavras_mais_buscadas_dificuldade.json"
+use_simplified_validation = False
 if os.path.exists(ARQUIVO_MAIS_BUSCADAS):
     with open(ARQUIVO_MAIS_BUSCADAS, "r", encoding="utf-8") as f:
         palavras_dicionario = json.load(f)
     print("Usando palavras do arquivo palavras_mais_buscadas_dificuldade.json!")
     # Desabilitar validação Dicio para essas palavras
-    def tem_definicao_dicio(palavra):
-        return True
+    use_simplified_validation = True
 else:
     # ... manter carregamento do pt_BR.dic e função tem_definicao_dicio original ...
     pass
@@ -252,13 +287,7 @@ btns_dificuldade = [
 btn_dificuldade_hover = None
 carregando_palavra = False
 
-# Função para desenhar tela de carregando palavra
-
-def desenhar_carregando_palavra():
-    screen.fill(COR_FUNDO_PRINCIPAL)
-    msg = FONT_BIG.render("Carregando palavra...", True, COR_TEXTO_CLARO)
-    screen.blit(msg, (WIDTH//2 - msg.get_width()//2, HEIGHT//2 - msg.get_height()//2))
-    pygame.display.flip()
+# Função para desenhar tela de carregando palavra (removida - usando versão do interface.py)
 
 # Remover a função duplicada de interface:
 # def desenhar_carregando_palavra_animado():
@@ -316,6 +345,10 @@ carregar_cache()
 # Atualizar tem_definicao_dicio para salvar cache e logar
 
 def tem_definicao_dicio(palavra):
+    # Use simplified validation if palavras_mais_buscadas file exists
+    if use_simplified_validation:
+        return True
+        
     palavra = palavra.upper()
     if palavra in dicio_cache:
         return dicio_cache[palavra]
@@ -376,6 +409,7 @@ def iniciar_jogo_solo():
                 pass
         else:
             palavra_escolhida = None
+            palavra_candidata = None  # Inicializar a variável
             tentativas = 0
             while tentativas < 10 and lista_palavras:
                 palavra_candidata = random.choice(lista_palavras).upper()
@@ -384,8 +418,13 @@ def iniciar_jogo_solo():
                     break
                 tentativas += 1
                 lista_palavras.remove(palavra_candidata)
-            if not palavra_escolhida:
+            if not palavra_escolhida and palavra_candidata:
                 palavra_escolhida = palavra_candidata  # usa a última sorteada
+        
+        # Garantir que sempre temos uma palavra válida
+        if not palavra_escolhida:
+            palavra_escolhida = "PYTHON"  # palavra de fallback
+            
         palavra_original = palavra_escolhida
         palavras_usadas.add(palavra_original)
         with open(PALAVRAS_USADAS_PATH, 'w', encoding='utf-8') as f:
@@ -429,7 +468,8 @@ def finalizar_rodada(vitoria):
     else:
         mensagem_final = f"Você desistiu! A palavra era '{palavra_original}'."
     print('[SOM] Fim do jogo (solo)')
-    SOM_FIM.play()
+    if SOM_FIM:  # Verificação de segurança
+        SOM_FIM.play()
     som_fim_tocou = True
 
 def buscar_definicao_dicio(palavra):
@@ -595,21 +635,24 @@ def popup_definicao(palavra):
 # Função para iniciar o jogo multiplayer
 def iniciar_multiplayer():
     global estado_multiplayer, rodada_idx, pares, tempos, erros, palavras
+    global multiplayer_palavra_atual, multiplayer_letras_adivinhadas, multiplayer_indice_atual
+    global multiplayer_letras_embaralhadas, multiplayer_letras_embaralhadas_usadas
+    global multiplayer_letras_tentadas, multiplayer_letras_erradas, multiplayer_erros, multiplayer_tempo_inicio
     pares = [(i, (i+1)%num_jogadores) for i in range(num_jogadores)]
     rodada_idx = 0
-    tempos = [0 for _ in range(num_jogadores)]
+    tempos = [0.0 for _ in range(num_jogadores)]
     erros = [0 for _ in range(num_jogadores)]
     palavras = ["" for _ in range(num_jogadores)]
     estado_multiplayer = "definir_palavra"
-    tratar_multiplayer.palavra_atual = ""
-    tratar_multiplayer.letras_adivinhadas = []
-    tratar_multiplayer.indice_atual = 0
-    tratar_multiplayer.letras_embaralhadas = []
-    tratar_multiplayer.letras_embaralhadas_usadas = []
-    tratar_multiplayer.letras_tentadas = set()
-    tratar_multiplayer.letras_erradas = set()
-    tratar_multiplayer.erros = 0
-    tratar_multiplayer.tempo_inicio = 0
+    multiplayer_palavra_atual = ""
+    multiplayer_letras_adivinhadas = []
+    multiplayer_indice_atual = 0
+    multiplayer_letras_embaralhadas = []
+    multiplayer_letras_embaralhadas_usadas = []
+    multiplayer_letras_tentadas = set()
+    multiplayer_letras_erradas = set()
+    multiplayer_erros = 0
+    multiplayer_tempo_inicio = 0
 
 # Adicione o controle de FPS do Pygame
 clock = pygame.time.Clock()
@@ -633,6 +676,42 @@ nomes_jogadores = []
 # Mensagem de erro do multiplayer
 multiplayer_erro_msg = ""
 
+# Inicialize variáveis de controle do multiplayer
+rodada_idx = 0
+pares = []
+tempos = []
+erros = []
+palavras = []
+
+# Variáveis globais para o estado do multiplayer
+multiplayer_palavra_atual = ""
+multiplayer_letras_adivinhadas = []
+multiplayer_indice_atual = 0
+multiplayer_letras_embaralhadas = []
+multiplayer_letras_embaralhadas_usadas = []
+multiplayer_letras_tentadas = set()
+multiplayer_letras_erradas = set()
+multiplayer_erros = 0
+multiplayer_tempo_inicio = 0
+multiplayer_foco_idx = 0
+multiplayer_foco_inicializado = False
+multiplayer_feedback_erro_idx = -1
+multiplayer_feedback_erro_timer = 0
+multiplayer_feedback_erro_circulo_idx = -1
+multiplayer_feedback_erro_circulo_timer = 0
+multiplayer_shake_timer = 0
+multiplayer_erro_palavra = ""
+multiplayer_palavra_secreta = ""
+multiplayer_sugestoes = []
+multiplayer_btns_sugestoes = []
+multiplayer_btn_add_rect = None
+multiplayer_btn_fechar_rect = None
+multiplayer_mensagem_final = ""
+multiplayer_tempo_final = 0.0
+multiplayer_erros_final = 0
+multiplayer_som_iniciar_tocou = False
+multiplayer_som_vitoria_tocou = False
+
 # Inicialize o número máximo de letras por rodada do multiplayer
 default_max_letras = 6
 max_letras_rodada = default_max_letras
@@ -644,7 +723,15 @@ transicao_multiplayer_msg = ""
 def tratar_multiplayer(events):
     global estado_multiplayer, rodada_idx, pares, nomes_jogadores, tempos, erros, palavras, num_jogadores, max_letras_rodada
     global transicao_multiplayer_msg, transicao_multiplayer_timer
-    global multiplayer_erro_msg
+    global multiplayer_erro_msg, multiplayer_foco_idx, multiplayer_foco_inicializado
+    global multiplayer_feedback_erro_idx, multiplayer_feedback_erro_timer
+    global multiplayer_feedback_erro_circulo_idx, multiplayer_feedback_erro_circulo_timer, multiplayer_shake_timer
+    global multiplayer_indice_atual, multiplayer_letras_adivinhadas, multiplayer_letras_tentadas
+    global multiplayer_letras_erradas, multiplayer_erros, multiplayer_letras_embaralhadas_usadas
+    global multiplayer_mensagem_final, multiplayer_tempo_final, multiplayer_erros_final
+    global multiplayer_palavra_atual, multiplayer_erro_palavra, multiplayer_palavra_secreta
+    global multiplayer_sugestoes, multiplayer_btns_sugestoes, multiplayer_btn_add_rect, multiplayer_btn_fechar_rect
+    global multiplayer_letras_embaralhadas, multiplayer_tempo_inicio
     if estado_multiplayer == "config":
         menos_rect, mais_rect, menos_l_rect, mais_l_rect, btn_avancar_rect, btn_voltar_rect = desenhar_config_multiplayer_config(
             screen, FONT_BIG, FONT_MED, COR_FUNDO_PRINCIPAL, COR_TEXTO_CLARO, COR_BOTAO, COR_BOTAO_HOVER, COR_TEXTO_CLARO_DESTACADO, num_jogadores, max_letras_rodada
@@ -661,8 +748,8 @@ def tratar_multiplayer(events):
                     if num_jogadores > 2:
                         num_jogadores -= 1
                         nomes_jogadores = nomes_jogadores[:num_jogadores]
-                        if hasattr(tratar_multiplayer, 'foco_idx') and tratar_multiplayer.foco_idx >= num_jogadores:
-                            tratar_multiplayer.foco_idx = num_jogadores - 1
+                        if multiplayer_foco_idx >= num_jogadores:
+                            multiplayer_foco_idx = num_jogadores - 1
                 elif mais_rect.collidepoint(mx, my):
                     if num_jogadores < 6:
                         num_jogadores += 1
@@ -680,16 +767,14 @@ def tratar_multiplayer(events):
                     voltar_menu()
         pygame.display.flip()
     elif estado_multiplayer == "nomes":
-        if not hasattr(tratar_multiplayer, 'foco_idx'):
-            tratar_multiplayer.foco_idx = 0
-        if tratar_multiplayer.foco_idx >= num_jogadores:
-            tratar_multiplayer.foco_idx = num_jogadores - 1
+        if multiplayer_foco_idx >= num_jogadores:
+            multiplayer_foco_idx = num_jogadores - 1
         nomes_jogadores[:] = nomes_jogadores[:num_jogadores]
         while len(nomes_jogadores) < num_jogadores:
             nomes_jogadores.append("")
         btn_iniciar_rect, btn_voltar_rect, input_nomes = desenhar_config_multiplayer_nomes(
             screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL, COR_TEXTO_CLARO,
-            cor_input_inativo, cor_input_borda, COR_BOTAO, COR_BOTAO_HOVER, num_jogadores, nomes_jogadores, tratar_multiplayer.foco_idx, multiplayer_erro_msg
+            cor_input_inativo, cor_input_borda, COR_BOTAO, COR_BOTAO_HOVER, num_jogadores, nomes_jogadores, multiplayer_foco_idx, multiplayer_erro_msg
         )
         for event in events:
             if event.type == pygame.QUIT:
@@ -699,24 +784,24 @@ def tratar_multiplayer(events):
                     voltar_menu()
                     estado_multiplayer = "config"
                 elif event.key in (pygame.K_TAB, pygame.K_RETURN):
-                    if tratar_multiplayer.foco_idx < num_jogadores - 1:
-                        tratar_multiplayer.foco_idx += 1
+                    if multiplayer_foco_idx < num_jogadores - 1:
+                        multiplayer_foco_idx += 1
                     else:
                         if all(n.strip() for n in nomes_jogadores[:num_jogadores]):
                             iniciar_multiplayer()
                             estado_multiplayer = "definir_palavra"
                 elif event.key == pygame.K_BACKSPACE:
-                    idx = tratar_multiplayer.foco_idx
+                    idx = multiplayer_foco_idx
                     if 0 <= idx < len(nomes_jogadores):
                         nomes_jogadores[idx] = nomes_jogadores[idx][:-1]
-                elif 0 <= tratar_multiplayer.foco_idx < len(nomes_jogadores) and len(nomes_jogadores[tratar_multiplayer.foco_idx]) < 20 and event.unicode.isprintable():
-                    idx = tratar_multiplayer.foco_idx
+                elif 0 <= multiplayer_foco_idx < len(nomes_jogadores) and len(nomes_jogadores[multiplayer_foco_idx]) < 20 and event.unicode.isprintable():
+                    idx = multiplayer_foco_idx
                     nomes_jogadores[idx] += event.unicode.upper()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
                 for rect, idx in input_nomes:
                     if rect.collidepoint(mx, my):
-                        tratar_multiplayer.foco_idx = idx
+                        multiplayer_foco_idx = idx
                         break
                 if btn_iniciar_rect.collidepoint(mx, my) and all(n.strip() for n in nomes_jogadores[:num_jogadores]):
                     if not all(n.strip() for n in nomes_jogadores[:num_jogadores]):
@@ -726,20 +811,18 @@ def tratar_multiplayer(events):
                         estado_multiplayer = "definir_palavra"
                 elif btn_voltar_rect.collidepoint(mx, my):
                     estado_multiplayer = "config"
-        if not hasattr(tratar_multiplayer, 'foco_inicializado') or not tratar_multiplayer.foco_inicializado:
-            tratar_multiplayer.foco_idx = 0
-            tratar_multiplayer.foco_inicializado = True
+        if not multiplayer_foco_inicializado:
+            multiplayer_foco_idx = 0
+            multiplayer_foco_inicializado = True
         pygame.display.flip()
     elif estado_multiplayer == "definir_palavra":
         definidor, adivinha = 0, 1  # Exemplo para 2 jogadores
         jogador_definidor = nomes_jogadores[definidor]
         jogador_adivinha = nomes_jogadores[adivinha]
-        if not hasattr(tratar_multiplayer, 'palavra_atual'):
-            tratar_multiplayer.palavra_atual = ""
         input_rect, btn_confirmar_rect = desenhar_definir_palavra_multiplayer(
-            screen, FONT_BIG, FONT_MED, cor_input_inativo, jogador_definidor, jogador_adivinha, tratar_multiplayer.palavra_atual
+            screen, FONT_BIG, FONT_MED, cor_input_inativo, jogador_definidor, jogador_adivinha, multiplayer_palavra_atual
         )
-        if hasattr(tratar_multiplayer, 'erro_palavra') and tratar_multiplayer.erro_palavra:
+        if multiplayer_erro_palavra:
             # Caixa de sugestões
             caixa_largura = input_rect.width + 60  # aumentada
             caixa_x = input_rect.x - 30
@@ -749,19 +832,19 @@ def tratar_multiplayer(events):
             pygame.draw.rect(screen, (245, 240, 210), (caixa_x, caixa_y, caixa_largura, caixa_altura), border_radius=18)
             pygame.draw.rect(screen, (185, 148, 112), (caixa_x, caixa_y, caixa_largura, caixa_altura), 3, border_radius=18)
             # Texto de erro centralizado no topo da caixa
-            erro_label = FONT_SMALL.render(tratar_multiplayer.erro_palavra, True, (196, 102, 31))
+            erro_label = FONT_SMALL.render(multiplayer_erro_palavra, True, (196, 102, 31))
             erro_x = caixa_x + (caixa_largura - erro_label.get_width()) // 2
             erro_y = caixa_y + 12
             screen.blit(erro_label, (erro_x, erro_y))
             # Sugestões de palavras parecidas
-            palavra_tentativa = tratar_multiplayer.palavra_atual.strip().upper()
+            palavra_tentativa = multiplayer_palavra_atual.strip().upper()
             letras_esperadas = len(palavra_tentativa)
             # Filtrar dicionario_multiplayer para o tamanho correto
             palavras_filtradas = [p for p in dicionario_multiplayer if len(p) == letras_esperadas]
-            tratar_multiplayer.sugestoes = difflib.get_close_matches(palavra_tentativa, palavras_filtradas, n=5, cutoff=0.7)
+            multiplayer_sugestoes = difflib.get_close_matches(palavra_tentativa, palavras_filtradas, n=5, cutoff=0.7)
             btns_sugestoes = []
             mouse_x, mouse_y = pygame.mouse.get_pos()
-            for i, sugestao in enumerate(tratar_multiplayer.sugestoes):
+            for i, sugestao in enumerate(multiplayer_sugestoes):
                 btn_rect = pygame.Rect(caixa_x + 25, caixa_y + 40 + i*55, caixa_largura - 50, 44)
                 hover = btn_rect.collidepoint(mouse_x, mouse_y)
                 cor_btn = (185, 148, 112) if hover else COR_BOTAO
@@ -772,7 +855,7 @@ def tratar_multiplayer(events):
                 screen.blit(label, (btn_rect.x + 16, btn_rect.y + 10))
                 btns_sugestoes.append((btn_rect, sugestao))
             # Botão para adicionar ao dicionário
-            btn_add_rect = pygame.Rect(caixa_x + 25, caixa_y + 40 + len(tratar_multiplayer.sugestoes)*55, caixa_largura - 50, 44)
+            btn_add_rect = pygame.Rect(caixa_x + 25, caixa_y + 40 + len(multiplayer_sugestoes)*55, caixa_largura - 50, 44)
             hover_add = btn_add_rect.collidepoint(mouse_x, mouse_y)
             cor_add = (120, 180, 60) if not hover_add else (80, 200, 80)
             cor_add_borda = (80, 140, 40) if not hover_add else (40, 100, 40)
@@ -797,9 +880,9 @@ def tratar_multiplayer(events):
             pygame.draw.rect(screen, cor_fechar_borda, btn_fechar_rect, 2, border_radius=10)
             label_fechar = FONT_SMALL.render("Fechar", True, (255,255,255))
             screen.blit(label_fechar, (btn_fechar_rect.x + (btn_fechar_rect.w - label_fechar.get_width())//2, btn_fechar_rect.y + 7))
-            tratar_multiplayer.btns_sugestoes = btns_sugestoes
-            tratar_multiplayer.btn_add_rect = btn_add_rect
-            tratar_multiplayer.btn_fechar_rect = btn_fechar_rect
+            multiplayer_btns_sugestoes = btns_sugestoes
+            multiplayer_btn_add_rect = btn_add_rect
+            multiplayer_btn_fechar_rect = btn_fechar_rect
         for event in events:
             if event.type == pygame.QUIT:
                 sair()
@@ -809,58 +892,61 @@ def tratar_multiplayer(events):
                     estado_multiplayer = "config"
                     return
                 elif event.key == pygame.K_RETURN:
-                    if 4 <= len(tratar_multiplayer.palavra_atual.strip()) <= max_letras_rodada:
-                        palavra_tentativa = tratar_multiplayer.palavra_atual.strip().upper()
+                    if 4 <= len(multiplayer_palavra_atual.strip()) <= max_letras_rodada:
+                        palavra_tentativa = multiplayer_palavra_atual.strip().upper()
                         if palavra_tentativa in dicionario_multiplayer:
-                            tratar_multiplayer.palavra_secreta = palavra_tentativa
+                            multiplayer_palavra_secreta = palavra_tentativa
                             estado_multiplayer = "espera"
-                            tratar_multiplayer.palavra_atual = ""
-                            tratar_multiplayer.erro_palavra = ""
+                            multiplayer_palavra_atual = ""
+                            multiplayer_erro_palavra = ""
                         else:
-                            tratar_multiplayer.erro_palavra = "Palavra não encontrada no dicionário!"
+                            multiplayer_erro_palavra = "Palavra não encontrada no dicionário!"
                 elif event.key == pygame.K_BACKSPACE:
-                    tratar_multiplayer.palavra_atual = tratar_multiplayer.palavra_atual[:-1]
-                elif len(tratar_multiplayer.palavra_atual) < max_letras_rodada and event.unicode.isalpha():
-                    tratar_multiplayer.palavra_atual += event.unicode.upper()
+                    multiplayer_palavra_atual = multiplayer_palavra_atual[:-1]
+                elif len(multiplayer_palavra_atual) < max_letras_rodada and event.unicode.isalpha():
+                    multiplayer_palavra_atual += event.unicode.upper()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
                 if input_rect.collidepoint(mx, my):
                     pass
                 elif btn_confirmar_rect.collidepoint(mx, my):
-                    if 4 <= len(tratar_multiplayer.palavra_atual.strip()) <= max_letras_rodada:
-                        palavra_tentativa = tratar_multiplayer.palavra_atual.strip().upper()
+                    if 4 <= len(multiplayer_palavra_atual.strip()) <= max_letras_rodada:
+                        palavra_tentativa = multiplayer_palavra_atual.strip().upper()
                         if palavra_tentativa in dicionario_multiplayer:
-                            tratar_multiplayer.palavra_secreta = palavra_tentativa
+                            multiplayer_palavra_secreta = palavra_tentativa
                             estado_multiplayer = "espera"
-                            tratar_multiplayer.palavra_atual = ""
-                            tratar_multiplayer.erro_palavra = ""
+                            multiplayer_palavra_atual = ""
+                            multiplayer_erro_palavra = ""
                         else:
-                            tratar_multiplayer.erro_palavra = "Palavra não encontrada no dicionário!"
+                            multiplayer_erro_palavra = "Palavra não encontrada no dicionário!"
                 # Bloco de sugestões e adicionar ao dicionário deve estar aqui:
-                if hasattr(tratar_multiplayer, 'erro_palavra') and tratar_multiplayer.erro_palavra:
+                if multiplayer_erro_palavra:
                     # Verifica se clicou em uma sugestão
-                    for btn_rect, sugestao in getattr(tratar_multiplayer, 'btns_sugestoes', []):
+                    for btn_rect, sugestao in multiplayer_btns_sugestoes:
                         if btn_rect.collidepoint(mx, my):
-                            tratar_multiplayer.palavra_secreta = sugestao
+                            multiplayer_palavra_secreta = sugestao
                             estado_multiplayer = "espera"
-                            tratar_multiplayer.palavra_atual = ""
-                            tratar_multiplayer.erro_palavra = ""
+                            multiplayer_palavra_atual = ""
+                            multiplayer_erro_palavra = ""
                             return
                     # Verifica se clicou em adicionar ao dicionário
-                    if hasattr(tratar_multiplayer, 'btn_add_rect') and tratar_multiplayer.btn_add_rect.collidepoint(mx, my):
-                        palavra_tentativa = tratar_multiplayer.palavra_atual.strip().upper()
+                    if multiplayer_btn_add_rect and multiplayer_btn_add_rect.collidepoint(mx, my):
+                        palavra_tentativa = multiplayer_palavra_atual.strip().upper()
                         adicionar_palavra_ao_dicionario(palavra_tentativa)
-                        tratar_multiplayer.palavra_secreta = palavra_tentativa
+                        multiplayer_palavra_secreta = palavra_tentativa
                         estado_multiplayer = "espera"
-                        tratar_multiplayer.palavra_atual = ""
-                        tratar_multiplayer.erro_palavra = ""
+                        multiplayer_palavra_atual = ""
+                        multiplayer_erro_palavra = ""
                         return
                     # Verifica se clicou em fechar
-                    if hasattr(tratar_multiplayer, 'btn_fechar_rect') and tratar_multiplayer.btn_fechar_rect.collidepoint(mx, my):
-                        tratar_multiplayer.erro_palavra = ""
+                    if multiplayer_btn_fechar_rect and multiplayer_btn_fechar_rect.collidepoint(mx, my):
+                        multiplayer_erro_palavra = ""
                         return
         pygame.display.flip()
     elif estado_multiplayer == "espera":
+        global multiplayer_letras_adivinhadas, multiplayer_indice_atual, multiplayer_letras_embaralhadas
+        global multiplayer_letras_embaralhadas_usadas, multiplayer_letras_tentadas, multiplayer_letras_erradas
+        global multiplayer_erros, multiplayer_tempo_inicio
         definidor, adivinha = 0, 1  # Exemplo para 2 jogadores
         jogador_adivinha = nomes_jogadores[adivinha]
         btn_pronto_rect = desenhar_espera_multiplayer(
@@ -877,59 +963,59 @@ def tratar_multiplayer(events):
                 elif event.key == pygame.K_RETURN:
                     # Ativa o botão Pronto
                     estado_multiplayer = "adivinhar"
-                    tratar_multiplayer.letras_adivinhadas = ["" for _ in tratar_multiplayer.palavra_secreta]
-                    tratar_multiplayer.indice_atual = 0
-                    letras = list(tratar_multiplayer.palavra_secreta)
+                    multiplayer_letras_adivinhadas = ["" for _ in multiplayer_palavra_secreta]
+                    multiplayer_indice_atual = 0
+                    letras = list(multiplayer_palavra_secreta)
                     while True:
                         random.shuffle(letras)
-                        if ''.join(letras) != tratar_multiplayer.palavra_secreta:
+                        if ''.join(letras) != multiplayer_palavra_secreta:
                             break
-                    tratar_multiplayer.letras_embaralhadas = letras
-                    tratar_multiplayer.letras_embaralhadas_usadas = [False] * len(tratar_multiplayer.palavra_secreta)
-                    tratar_multiplayer.letras_tentadas = set()
-                    tratar_multiplayer.letras_erradas = set()
-                    tratar_multiplayer.erros = 0
-                    tratar_multiplayer.tempo_inicio = time.time()
+                    multiplayer_letras_embaralhadas = letras
+                    multiplayer_letras_embaralhadas_usadas = [False] * len(multiplayer_palavra_secreta)
+                    multiplayer_letras_tentadas = set()
+                    multiplayer_letras_erradas = set()
+                    multiplayer_erros = 0
+                    multiplayer_tempo_inicio = time.time()
                     return
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
                 if btn_pronto_rect.collidepoint(mx, my):
                     estado_multiplayer = "adivinhar"
-                    tratar_multiplayer.letras_adivinhadas = ["" for _ in tratar_multiplayer.palavra_secreta]
-                    tratar_multiplayer.indice_atual = 0
-                    letras = list(tratar_multiplayer.palavra_secreta)
+                    multiplayer_letras_adivinhadas = ["" for _ in multiplayer_palavra_secreta]
+                    multiplayer_indice_atual = 0
+                    letras = list(multiplayer_palavra_secreta)
                     while True:
                         random.shuffle(letras)
-                        if ''.join(letras) != tratar_multiplayer.palavra_secreta:
+                        if ''.join(letras) != multiplayer_palavra_secreta:
                             break
-                    tratar_multiplayer.letras_embaralhadas = letras
-                    tratar_multiplayer.letras_embaralhadas_usadas = [False] * len(tratar_multiplayer.palavra_secreta)
-                    tratar_multiplayer.letras_tentadas = set()
-                    tratar_multiplayer.letras_erradas = set()
-                    tratar_multiplayer.erros = 0
-                    tratar_multiplayer.tempo_inicio = time.time()
+                    multiplayer_letras_embaralhadas = letras
+                    multiplayer_letras_embaralhadas_usadas = [False] * len(multiplayer_palavra_secreta)
+                    multiplayer_letras_tentadas = set()
+                    multiplayer_letras_erradas = set()
+                    multiplayer_erros = 0
+                    multiplayer_tempo_inicio = time.time()
         pygame.display.flip()
     elif estado_multiplayer == "adivinhar":
         # Interface de adivinhação multiplayer (com animação de erro)
         screen.fill(COR_FUNDO_PRINCIPAL)
-        tempo_atual = time.time() - tratar_multiplayer.tempo_inicio + tratar_multiplayer.erros * PENALIDADE_ERRO
-        info = FONT_SMALL.render(f"Tempo: {tempo_atual:.2f}s   Erros: {tratar_multiplayer.erros}", True, COR_TEXTO_CLARO)
+        tempo_atual = time.time() - multiplayer_tempo_inicio + multiplayer_erros * PENALIDADE_ERRO
+        info = FONT_SMALL.render(f"Tempo: {tempo_atual:.2f}s   Erros: {multiplayer_erros}", True, COR_TEXTO_CLARO)
         screen.blit(info, (40, 30))
         # Tremor
         shake_x, shake_y = 0, 0
-        if hasattr(tratar_multiplayer, 'shake_timer') and tratar_multiplayer.shake_timer > 0:
+        if multiplayer_shake_timer > 0:
             shake_x = random.randint(-SHAKE_INTENSITY, SHAKE_INTENSITY)
             shake_y = random.randint(-SHAKE_INTENSITY, SHAKE_INTENSITY)
         # Letras embaralhadas
         letras_embaralhadas_pos = []
-        cx = WIDTH//2 - (len(tratar_multiplayer.letras_embaralhadas)*60)//2 + shake_x
+        cx = WIDTH//2 - (len(multiplayer_letras_embaralhadas)*60)//2 + shake_x
         cy = 120 + shake_y
-        for i, letra in enumerate(tratar_multiplayer.letras_embaralhadas):
+        for i, letra in enumerate(multiplayer_letras_embaralhadas):
             center = (cx + i*60 + 30, cy + 30)
             rect = pygame.Rect(center[0]-30, center[1]-30, 60, 60)
-            if hasattr(tratar_multiplayer, 'feedback_erro_circulo_idx') and i == tratar_multiplayer.feedback_erro_circulo_idx and getattr(tratar_multiplayer, 'feedback_erro_circulo_timer', 0) > 0:
+            if i == multiplayer_feedback_erro_circulo_idx and multiplayer_feedback_erro_circulo_timer > 0:
                 cor = (196, 102, 31)
-            elif not tratar_multiplayer.letras_embaralhadas_usadas[i]:
+            elif not multiplayer_letras_embaralhadas_usadas[i]:
                 cor = (210, 180, 140)  # marrom claro
             else:
                 cor = (100, 200, 120)  # verde suave
@@ -938,18 +1024,18 @@ def tratar_multiplayer(events):
             screen.blit(l, (center[0] - l.get_width()//2, center[1] - l.get_height()//2))
             letras_embaralhadas_pos.append((rect, letra, i))
         # Espaços para adivinhar
-        cx2 = WIDTH//2 - (len(tratar_multiplayer.palavra_secreta)*60)//2 + shake_x
+        cx2 = WIDTH//2 - (len(multiplayer_palavra_secreta)*60)//2 + shake_x
         cy2 = 250 + shake_y
-        for i in range(len(tratar_multiplayer.palavra_secreta)):
+        for i in range(len(multiplayer_palavra_secreta)):
             rect = pygame.Rect(cx2 + i*60, cy2, 50, 60)
-            if hasattr(tratar_multiplayer, 'feedback_erro_idx') and i == tratar_multiplayer.feedback_erro_idx and getattr(tratar_multiplayer, 'feedback_erro_timer', 0) > 0:
+            if i == multiplayer_feedback_erro_idx and multiplayer_feedback_erro_timer > 0:
                 pygame.draw.rect(screen, (196, 102, 31), rect, border_radius=8)
-            elif tratar_multiplayer.letras_adivinhadas[i]:
+            elif multiplayer_letras_adivinhadas[i]:
                 pygame.draw.rect(screen, (160, 130, 90), rect, border_radius=8)  # marrom mais escuro
             else:
                 pygame.draw.rect(screen, (210, 180, 140), rect, border_radius=8)  # marrom claro
             pygame.draw.rect(screen, cor_input_borda, rect, 2, border_radius=8)
-            letra = tratar_multiplayer.letras_adivinhadas[i]
+            letra = multiplayer_letras_adivinhadas[i]
             letra_render = FONT_BIG.render(letra, True, (255,255,255)) if letra else None
             if letra_render:
                 screen.blit(letra_render, (rect.x + (rect.w - letra_render.get_width())//2, rect.y + (rect.h - letra_render.get_height())//2))
@@ -963,16 +1049,16 @@ def tratar_multiplayer(events):
         screen.blit(instr, (WIDTH//2 - instr.get_width()//2, HEIGHT - 40))
         # Atualizar timers de feedback
         dt = clock.get_time()
-        if hasattr(tratar_multiplayer, 'feedback_erro_timer') and tratar_multiplayer.feedback_erro_timer > 0:
-            tratar_multiplayer.feedback_erro_timer -= dt
-            if tratar_multiplayer.feedback_erro_timer <= 0:
-                tratar_multiplayer.feedback_erro_idx = -1
-        if hasattr(tratar_multiplayer, 'feedback_erro_circulo_timer') and tratar_multiplayer.feedback_erro_circulo_timer > 0:
-            tratar_multiplayer.feedback_erro_circulo_timer -= dt
-            if tratar_multiplayer.feedback_erro_circulo_timer <= 0:
-                tratar_multiplayer.feedback_erro_circulo_idx = -1
-        if hasattr(tratar_multiplayer, 'shake_timer') and tratar_multiplayer.shake_timer > 0:
-            tratar_multiplayer.shake_timer -= dt
+        if multiplayer_feedback_erro_timer > 0:
+            multiplayer_feedback_erro_timer -= dt
+            if multiplayer_feedback_erro_timer <= 0:
+                multiplayer_feedback_erro_idx = -1
+        if multiplayer_feedback_erro_circulo_timer > 0:
+            multiplayer_feedback_erro_circulo_timer -= dt
+            if multiplayer_feedback_erro_circulo_timer <= 0:
+                multiplayer_feedback_erro_circulo_idx = -1
+        if multiplayer_shake_timer > 0:
+            multiplayer_shake_timer -= dt
         for event in events:
             if event.type == pygame.QUIT:
                 sair()
@@ -982,31 +1068,32 @@ def tratar_multiplayer(events):
                     estado_multiplayer = "config"
                     return
                 elif event.key == pygame.K_BACKSPACE:
-                    if tratar_multiplayer.letras_adivinhadas[tratar_multiplayer.indice_atual]:
-                        tratar_multiplayer.letras_adivinhadas[tratar_multiplayer.indice_atual] = ""
-                    elif tratar_multiplayer.indice_atual > 0:
-                        tratar_multiplayer.indice_atual -= 1
-                        tratar_multiplayer.letras_adivinhadas[tratar_multiplayer.indice_atual] = ""
+                    if multiplayer_letras_adivinhadas[multiplayer_indice_atual]:
+                        multiplayer_letras_adivinhadas[multiplayer_indice_atual] = ""
+                    elif multiplayer_indice_atual > 0:
+                        multiplayer_indice_atual -= 1
+                        multiplayer_letras_adivinhadas[multiplayer_indice_atual] = ""
                 elif event.unicode.isalpha() and len(event.unicode) == 1:
                     letra_digitada = event.unicode.upper()
-                    tratar_multiplayer.letras_tentadas.add(letra_digitada)
-                    if letra_digitada == tratar_multiplayer.palavra_secreta[tratar_multiplayer.indice_atual]:
+                    multiplayer_letras_tentadas.add(letra_digitada)
+                    if letra_digitada == multiplayer_palavra_secreta[multiplayer_indice_atual]:
                         print('[SOM] Acerto de letra')
-                        SOM_ACERTO.play()
-                        tratar_multiplayer.letras_adivinhadas[tratar_multiplayer.indice_atual] = letra_digitada
-                        for i, l in enumerate(tratar_multiplayer.letras_embaralhadas):
-                            if l == letra_digitada and not tratar_multiplayer.letras_embaralhadas_usadas[i]:
-                                tratar_multiplayer.letras_embaralhadas_usadas[i] = True
+                        if SOM_ACERTO:
+                            SOM_ACERTO.play()
+                        multiplayer_letras_adivinhadas[multiplayer_indice_atual] = letra_digitada
+                        for i, l in enumerate(multiplayer_letras_embaralhadas):
+                            if l == letra_digitada and not multiplayer_letras_embaralhadas_usadas[i]:
+                                multiplayer_letras_embaralhadas_usadas[i] = True
                                 break
-                        if tratar_multiplayer.indice_atual < len(tratar_multiplayer.letras_adivinhadas) - 1:
-                            tratar_multiplayer.indice_atual += 1
+                        if multiplayer_indice_atual < len(multiplayer_letras_adivinhadas) - 1:
+                            multiplayer_indice_atual += 1
                         else:
-                            if "".join(tratar_multiplayer.letras_adivinhadas) == tratar_multiplayer.palavra_secreta:
-                                tempo = time.time() - tratar_multiplayer.tempo_inicio + tratar_multiplayer.erros * PENALIDADE_ERRO
+                            if "".join(multiplayer_letras_adivinhadas) == multiplayer_palavra_secreta:
+                                tempo = time.time() - multiplayer_tempo_inicio + multiplayer_erros * PENALIDADE_ERRO
                                 definidor, adivinha = pares[rodada_idx]
                                 tempos[adivinha] = tempo
-                                erros[adivinha] = tratar_multiplayer.erros
-                                palavras[adivinha] = tratar_multiplayer.palavra_secreta
+                                erros[adivinha] = multiplayer_erros
+                                palavras[adivinha] = multiplayer_palavra_secreta
                                 rodada_idx += 1
                                 # 2. No final da rodada (acerto ou desistência), antes de mudar o estado, iniciar a transição:
                                 transicao_multiplayer_timer = pygame.time.get_ticks() + 2000  # 2 segundos de transição
@@ -1019,42 +1106,44 @@ def tratar_multiplayer(events):
                                 return
                     else:
                         print('[SOM] Erro de letra')
-                        SOM_ERRO.play()
-                        tratar_multiplayer.erros += 1
-                        tratar_multiplayer.letras_erradas.add(letra_digitada)
-                        tratar_multiplayer.feedback_erro_idx = tratar_multiplayer.indice_atual
-                        tratar_multiplayer.feedback_erro_timer = FEEDBACK_ERRO_DURATION
-                        tratar_multiplayer.shake_timer = SHAKE_DURATION
+                        if SOM_ERRO:
+                            SOM_ERRO.play()
+                        multiplayer_erros += 1
+                        multiplayer_letras_erradas.add(letra_digitada)
+                        multiplayer_feedback_erro_idx = multiplayer_indice_atual
+                        multiplayer_feedback_erro_timer = FEEDBACK_ERRO_DURATION
+                        multiplayer_shake_timer = SHAKE_DURATION
                 elif event.key == pygame.K_LEFT:
-                    if tratar_multiplayer.indice_atual > 0:
-                        tratar_multiplayer.indice_atual -= 1
+                    if multiplayer_indice_atual > 0:
+                        multiplayer_indice_atual -= 1
                 elif event.key == pygame.K_RIGHT:
-                    if tratar_multiplayer.indice_atual < len(tratar_multiplayer.letras_adivinhadas) - 1:
-                        tratar_multiplayer.indice_atual += 1
+                    if multiplayer_indice_atual < len(multiplayer_letras_adivinhadas) - 1:
+                        multiplayer_indice_atual += 1
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if btn_desistir_rect.collidepoint(event.pos):
-                    tratar_multiplayer.mensagem_final = f"Você desistiu! A palavra era '{tratar_multiplayer.palavra_secreta}'."
-                    tratar_multiplayer.tempo_final = tempo_atual
-                    tratar_multiplayer.erros_final = tratar_multiplayer.erros
+                    multiplayer_mensagem_final = f"Você desistiu! A palavra era '{multiplayer_palavra_secreta}'."
+                    multiplayer_tempo_final = tempo_atual
+                    multiplayer_erros_final = multiplayer_erros
                     estado_multiplayer = "final_multiplayer"
                     return
                 for rect, letra, idx in letras_embaralhadas_pos:
-                    if rect.collidepoint(event.pos) and not tratar_multiplayer.letras_embaralhadas_usadas[idx]:
-                        if letra == tratar_multiplayer.palavra_secreta[tratar_multiplayer.indice_atual]:
+                    if rect.collidepoint(event.pos) and not multiplayer_letras_embaralhadas_usadas[idx]:
+                        if letra == multiplayer_palavra_secreta[multiplayer_indice_atual]:
                             print('[SOM] Acerto de letra')
-                            SOM_ACERTO.play()
-                            tratar_multiplayer.letras_adivinhadas[tratar_multiplayer.indice_atual] = letra
-                            tratar_multiplayer.letras_embaralhadas_usadas[idx] = True
-                            tratar_multiplayer.letras_tentadas.add(letra)
-                            if tratar_multiplayer.indice_atual < len(tratar_multiplayer.letras_adivinhadas) - 1:
-                                tratar_multiplayer.indice_atual += 1
+                            if SOM_ACERTO:
+                                SOM_ACERTO.play()
+                            multiplayer_letras_adivinhadas[multiplayer_indice_atual] = letra
+                            multiplayer_letras_embaralhadas_usadas[idx] = True
+                            multiplayer_letras_tentadas.add(letra)
+                            if multiplayer_indice_atual < len(multiplayer_letras_adivinhadas) - 1:
+                                multiplayer_indice_atual += 1
                             else:
-                                if "".join(tratar_multiplayer.letras_adivinhadas) == tratar_multiplayer.palavra_secreta:
-                                    tempo = time.time() - tratar_multiplayer.tempo_inicio + tratar_multiplayer.erros * PENALIDADE_ERRO
+                                if "".join(multiplayer_letras_adivinhadas) == multiplayer_palavra_secreta:
+                                    tempo = time.time() - multiplayer_tempo_inicio + multiplayer_erros * PENALIDADE_ERRO
                                     definidor, adivinha = pares[rodada_idx]
                                     tempos[adivinha] = tempo
-                                    erros[adivinha] = tratar_multiplayer.erros
-                                    palavras[adivinha] = tratar_multiplayer.palavra_secreta
+                                    erros[adivinha] = multiplayer_erros
+                                    palavras[adivinha] = multiplayer_palavra_secreta
                                     rodada_idx += 1
                                     # 2. No final da rodada (acerto ou desistência), antes de mudar o estado, iniciar a transição:
                                     transicao_multiplayer_timer = pygame.time.get_ticks() + 2000  # 2 segundos de transição
@@ -1067,14 +1156,15 @@ def tratar_multiplayer(events):
                                     return
                         else:
                             print('[SOM] Erro de letra')
-                            SOM_ERRO.play()
-                            tratar_multiplayer.erros += 1
-                            tratar_multiplayer.letras_erradas.add(letra)
-                            tratar_multiplayer.feedback_erro_idx = tratar_multiplayer.indice_atual
-                            tratar_multiplayer.feedback_erro_timer = FEEDBACK_ERRO_DURATION
-                            tratar_multiplayer.feedback_erro_circulo_idx = idx  # círculo da letra clicada
-                            tratar_multiplayer.feedback_erro_circulo_timer = FEEDBACK_ERRO_DURATION
-                            tratar_multiplayer.shake_timer = SHAKE_DURATION
+                            if SOM_ERRO:
+                                SOM_ERRO.play()
+                            multiplayer_erros += 1
+                            multiplayer_letras_erradas.add(letra)
+                            multiplayer_feedback_erro_idx = multiplayer_indice_atual
+                            multiplayer_feedback_erro_timer = FEEDBACK_ERRO_DURATION
+                            multiplayer_feedback_erro_circulo_idx = idx  # círculo da letra clicada
+                            multiplayer_feedback_erro_circulo_timer = FEEDBACK_ERRO_DURATION
+                            multiplayer_shake_timer = SHAKE_DURATION
                         break
         pygame.display.flip()
     elif estado_multiplayer == "ranking":
@@ -1202,54 +1292,7 @@ def desenhar_tela_final_multiplayer(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_
     screen.blit(menu_label, (btn_menu_rect.x + (btn_menu_rect.w - menu_label.get_width())//2, btn_menu_rect.y + (btn_menu_rect.h - menu_label.get_height())//2))
     return btn_menu_rect
 
-# Inicialização do mixer
-pygame.mixer.init()
-# Carregar efeitos sonoros
-SOM_ACERTO = pygame.mixer.Sound(r'C:\Users\jailt\OneDrive\Documentos\meusjogos\Desafio_deRivais_2.0\sons\acerto_letra.wav')
-SOM_ERRO = pygame.mixer.Sound(r'C:\Users\jailt\OneDrive\Documentos\meusjogos\Desafio_deRivais_2.0\sons\erro_letra.wav')
-SOM_INICIAR = pygame.mixer.Sound(r'C:\Users\jailt\OneDrive\Documentos\meusjogos\Desafio_deRivais_2.0\sons\iniciar_rodada.wav')
-SOM_FIM = pygame.mixer.Sound(r'C:\Users\jailt\OneDrive\Documentos\meusjogos\Desafio_deRivais_2.0\sons\fim_jogo.wav')
-SOM_VITORIA = pygame.mixer.Sound(r'C:\Users\jailt\OneDrive\Documentos\meusjogos\Desafio_deRivais_2.0\sons\vitoria_palavra.wav')
-SOM_CLIQUE = pygame.mixer.Sound(r'C:\Users\jailt\OneDrive\Documentos\meusjogos\Desafio_deRivais_2.0\sons\teclado.wav')
-# Música de fundo
-MUSICA_MENU_PATH = r'C:\Users\jailt\OneDrive\Documentos\meusjogos\Desafio_deRivais_2.0\sons\musica_menu.mp3'
-
-# Flags globais para evitar tocar sons múltiplas vezes
-som_iniciar_tocou = False
-som_fim_tocou = False
-
-fim_rodada_anterior = False
-
-rodada_finalizada = False
-
-# Substituir o carregamento do dicionário para usar palavras.json
-ARQUIVO_PALAVRAS_JSON = "Desafio_deRivais_2.0/palavras.json"
-
-if os.path.exists(ARQUIVO_PALAVRAS_JSON):
-    with open(ARQUIVO_PALAVRAS_JSON, "r", encoding="utf-8") as f:
-        palavras_dicionario = json.load(f)
-    print("Usando palavras do arquivo palavras.json!")
-
-
-
-# Carregar palavras usadas de arquivo
-PALAVRAS_USADAS_PATH = 'palavras_usadas.json'
-try:
-    with open(PALAVRAS_USADAS_PATH, 'r', encoding='utf-8') as f:
-        palavras_usadas = set(json.load(f))
-except Exception:
-    palavras_usadas = set()
-
-# --- Configurações Globais ---
-VOLUME_SOM = 1.0
-VOLUME_MUSICA = 1.0
-SOM_ATIVO = True
-MUSICA_ATIVA = True
-MODO_TELA_CHEIA = False
-RESOLUCAO_ATUAL = (800, 600)
-
-# --- Configurações Globais ---
-CONFIG_PATH = 'configuracoes.json'
+# Carregamento de configurações
 def carregar_config():
     global VOLUME_SOM, VOLUME_MUSICA, SOM_ATIVO, MUSICA_ATIVA, MODO_TELA_CHEIA, RESOLUCAO_ATUAL
     try:
@@ -1274,21 +1317,38 @@ def salvar_config():
     }
     with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
         json.dump(cfg, f, ensure_ascii=False, indent=2)
+
+# Inicialização das configurações
+VOLUME_SOM = 1.0
+VOLUME_MUSICA = 1.0
+SOM_ATIVO = True
+MUSICA_ATIVA = True
+MODO_TELA_CHEIA = False
+RESOLUCAO_ATUAL = (800, 600)
+
+# Carregar configurações salvas
 carregar_config()
-# Aplicar volumes carregados
-for s in [SOM_ACERTO, SOM_ERRO, SOM_INICIAR, SOM_FIM, SOM_VITORIA, SOM_CLIQUE]:
-    s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
+
+# Aplicar volumes carregados aos sons (com verificação de segurança)
+if SOM_ACERTO:  # Verifica se os sons foram carregados com sucesso
+    for s in [SOM_ACERTO, SOM_ERRO, SOM_INICIAR, SOM_FIM, SOM_VITORIA, SOM_CLIQUE]:
+        if s:  # Verificação adicional para cada som
+            s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
 pygame.mixer.music.set_volume(VOLUME_MUSICA if MUSICA_ATIVA else 0)
+
+# Carregar palavras usadas de arquivo
+try:
+    with open(PALAVRAS_USADAS_PATH, 'r', encoding='utf-8') as f:
+        palavras_usadas = set(json.load(f))
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    print(f"Aviso: {e}. Criando novo arquivo de palavras usadas.")
+    palavras_usadas = set()
 
 # Variáveis de estado para sliders e botões
 slider_som_drag = False
 slider_mus_drag = False
 btn_som_pressed = False
 btn_mus_pressed = False
-
-# Variáveis globais para feedback de configuração
-mensagem_config = ""
-mensagem_timer = 0
 
 def salvar_ranking_solo(nome, palavra, tempo, dificuldade):
     registro = {
@@ -1390,7 +1450,8 @@ while True:
                     botao_iniciar_nome.checar_evento(event)
                 if event.type == pygame.KEYDOWN:
                     if input_ativo:
-                        SOM_CLIQUE.play()
+                        if SOM_CLIQUE:  # Verificação de segurança
+                            SOM_CLIQUE.play()
                         if event.key == pygame.K_RETURN:
                             ir_para_dificuldade()
                         elif event.key == pygame.K_BACKSPACE:
@@ -1409,13 +1470,15 @@ while True:
             elif tela_atual == TELA_JOGO:
                 if rodada_ativa:
                     if event.type == pygame.KEYDOWN and rodada_ativa:
-                        SOM_CLIQUE.play()
+                        if SOM_CLIQUE:
+                            SOM_CLIQUE.play()
                         if event.unicode.isalpha() and len(event.unicode) == 1:
                             letra_digitada = event.unicode.upper()
                             letras_tentadas.add(letra_digitada)
                             if letra_digitada == palavra_original[indice_atual]:
                                 print('[SOM] Acerto de letra (solo)')
-                                SOM_ACERTO.play()
+                                if SOM_ACERTO:
+                                    SOM_ACERTO.play()
                                 letras_adivinhadas[indice_atual] = letra_digitada
                                 # Marca a primeira letra embaralhada disponível como usada
                                 for i, (l) in enumerate(palavra_embaralhada):
@@ -1429,7 +1492,8 @@ while True:
                                         finalizar_rodada(True)
                             else:
                                 print('[SOM] Erro de letra (solo)')
-                                SOM_ERRO.play()
+                                if SOM_ERRO:
+                                    SOM_ERRO.play()
                                 erros_exemplo += 1
                                 letras_erradas.add(letra_digitada)
                                 feedback_erro_idx = indice_atual
@@ -1455,7 +1519,8 @@ while True:
                             if rect.collidepoint(event.pos) and not letras_embaralhadas_usadas[idx]:
                                 if letra == palavra_original[indice_atual]:
                                     print('[SOM] Acerto de letra (solo)')
-                                    SOM_ACERTO.play()
+                                    if SOM_ACERTO:
+                                        SOM_ACERTO.play()
                                     letras_adivinhadas[indice_atual] = letra
                                     letras_embaralhadas_usadas[idx] = True
                                     letras_tentadas.add(letra)
@@ -1466,7 +1531,8 @@ while True:
                                             finalizar_rodada(True)
                                 else:
                                     print('[SOM] Erro de letra (solo)')
-                                    SOM_ERRO.play()
+                                    if SOM_ERRO:
+                                        SOM_ERRO.play()
                                     erros_exemplo += 1
                                     letras_erradas.add(letra)
                                     feedback_erro_idx = indice_atual  # quadrado da posição atual
@@ -1515,12 +1581,14 @@ while True:
                     if btn_menos_som.collidepoint(mx, my):
                         VOLUME_SOM = max(0.0, VOLUME_SOM - 0.1)
                         for s in [SOM_ACERTO, SOM_ERRO, SOM_INICIAR, SOM_FIM, SOM_VITORIA, SOM_CLIQUE]:
-                            s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
+                            if s:  # Verificação de segurança
+                                s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
                         salvar_config()
                     if btn_mais_som.collidepoint(mx, my):
                         VOLUME_SOM = min(1.0, VOLUME_SOM + 0.1)
                         for s in [SOM_ACERTO, SOM_ERRO, SOM_INICIAR, SOM_FIM, SOM_VITORIA, SOM_CLIQUE]:
-                            s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
+                            if s:  # Verificação de segurança
+                                s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
                         salvar_config()
                     # Botões de volume música
                     btn_menos_mus = pygame.Rect(370, 140+48+44, 36, 32)
@@ -1545,7 +1613,8 @@ while True:
                     if btn_som.collidepoint(mx, my):
                         SOM_ATIVO = not SOM_ATIVO
                         for s in [SOM_ACERTO, SOM_ERRO, SOM_INICIAR, SOM_FIM, SOM_VITORIA, SOM_CLIQUE]:
-                            s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
+                            if s:  # Verificação de segurança
+                                s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
                         salvar_config()
                     if btn_mus.collidepoint(mx, my):
                         MUSICA_ATIVA = not MUSICA_ATIVA
@@ -1578,24 +1647,25 @@ while True:
                     if btn_salvar_sair.collidepoint(mx, my):
                         salvar_config()
                         voltar_menu()
-            if event.type == pygame.MOUSEMOTION:
-                mx, my = event.pos
-                x_slider = 370
-                altura_slider = 16
-                y_som_slider = 140 + 48
-                y_mus_slider = y_som_slider + 44 + 60
-                if slider_som_drag:
-                    VOLUME_SOM = min(max((mx-x_slider)/200, 0), 1)
-                    for s in [SOM_ACERTO, SOM_ERRO, SOM_INICIAR, SOM_FIM, SOM_VITORIA, SOM_CLIQUE]:
-                        s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
-                    salvar_config()
-                if slider_mus_drag:
-                    VOLUME_MUSICA = min(max((mx-x_slider)/200, 0), 1)
-                    pygame.mixer.music.set_volume(VOLUME_MUSICA if MUSICA_ATIVA else 0)
-                    salvar_config()
-            if event.type == pygame.MOUSEBUTTONUP:
-                slider_som_drag = False
-                slider_mus_drag = False
+                elif event.type == pygame.MOUSEMOTION:
+                    mx, my = event.pos
+                    x_slider = 370
+                    altura_slider = 16
+                    y_som_slider = 140 + 48
+                    y_mus_slider = y_som_slider + 44 + 60
+                    if slider_som_drag:
+                        VOLUME_SOM = min(max((mx-x_slider)/200, 0), 1)
+                        for s in [SOM_ACERTO, SOM_ERRO, SOM_INICIAR, SOM_FIM, SOM_VITORIA, SOM_CLIQUE]:
+                            if s:  # Verificação de segurança
+                                s.set_volume(VOLUME_SOM if SOM_ATIVO else 0)
+                        salvar_config()
+                    if slider_mus_drag:
+                        VOLUME_MUSICA = min(max((mx-x_slider)/200, 0), 1)
+                        pygame.mixer.music.set_volume(VOLUME_MUSICA if MUSICA_ATIVA else 0)
+                        salvar_config()
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    slider_som_drag = False
+                    slider_mus_drag = False
         elif tela_atual == TELA_PLACAR:
                 desenhar_placar(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL, COR_TEXTO_CLARO)
         elif tela_atual == TELA_DIFICULDADE:
@@ -1631,31 +1701,30 @@ while True:
         # --- Som de iniciar rodada (solo) ---
         if tela_atual == TELA_JOGO and rodada_ativa and not som_iniciar_tocou:
             print('[SOM] Iniciar rodada (solo)')
-            SOM_INICIAR.play()
+            if SOM_INICIAR:  # Verificação de segurança
+                SOM_INICIAR.play()
             som_iniciar_tocou = True
         # Resetar flags ao iniciar nova rodada
         if tela_atual == TELA_JOGO and not rodada_ativa:
             som_iniciar_tocou = False
             som_fim_tocou = False
         # --- Som de iniciar rodada (multiplayer) ---
-        if 'estado_multiplayer' in globals() and estado_multiplayer == 'adivinhar' and not hasattr(tratar_multiplayer, 'som_iniciar_tocou'):
+        if 'estado_multiplayer' in globals() and estado_multiplayer == 'adivinhar' and not multiplayer_som_iniciar_tocou:
             print('[SOM] Iniciar rodada (multiplayer)')
-            SOM_INICIAR.play()
-            tratar_multiplayer.som_iniciar_tocou = True
+            if SOM_INICIAR:
+                SOM_INICIAR.play()
+            multiplayer_som_iniciar_tocou = True
         # --- Som de vitória multiplayer ---
-        if 'estado_multiplayer' in globals() and estado_multiplayer == 'adivinhar' and hasattr(tratar_multiplayer, 'letras_adivinhadas') and \
-           ''.join(tratar_multiplayer.letras_adivinhadas) == tratar_multiplayer.palavra_secreta and rodada_idx < len(pares) - 1 and not hasattr(tratar_multiplayer, 'som_vitoria_tocou'):
+        if 'estado_multiplayer' in globals() and estado_multiplayer == 'adivinhar' and len(multiplayer_letras_adivinhadas) > 0 and \
+           ''.join(multiplayer_letras_adivinhadas) == multiplayer_palavra_secreta and rodada_idx < len(pares) - 1 and not multiplayer_som_vitoria_tocou:
             print('[SOM] Vitória multiplayer')
-            SOM_VITORIA.play()
-            tratar_multiplayer.som_vitoria_tocou = True
+            if SOM_VITORIA:
+                SOM_VITORIA.play()
+            multiplayer_som_vitoria_tocou = True
         # Resetar flags multiplayer ao iniciar nova rodada
         if 'estado_multiplayer' in globals() and estado_multiplayer == 'definir_palavra':
-            if hasattr(tratar_multiplayer, 'som_iniciar_tocou'):
-                delattr(tratar_multiplayer, 'som_iniciar_tocou')
-            if hasattr(tratar_multiplayer, 'som_vitoria_tocou'):
-                delattr(tratar_multiplayer, 'som_vitoria_tocou')
-            if hasattr(tratar_multiplayer, 'som_fim_tocou'):
-                delattr(tratar_multiplayer, 'som_fim_tocou')
+            multiplayer_som_iniciar_tocou = False
+            multiplayer_som_vitoria_tocou = False
         # Detectar transição de fim_rodada: False -> True (solo)
         if tela_atual == TELA_JOGO and fim_rodada and not fim_rodada_anterior:
             print('[SOM] Fim do jogo (solo)')
@@ -1668,6 +1737,9 @@ while True:
         if tela_atual == TELA_JOGO and rodada_ativa:
             tempo_exemplo = time.time() - inicio_tempo
         # Exibir mensagem de feedback
+        x_slider = 370  # Inicializar variáveis para evitar erro unbound
+        y_base = 140 + 48 + 44 + 60 + 48
+        altura_btn = 36
         if mensagem_config and pygame.time.get_ticks() - mensagem_timer < 2000:
             txt_msg = FONT_SMALL.render(mensagem_config, True, (80, 80, 80))
             screen.blit(txt_msg, (x_slider, y_base+altura_btn+80))

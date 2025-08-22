@@ -1,0 +1,17 @@
+{
+    "venvPath": ".",
+    "venv": ".venv-1",
+    "pythonVersion": "3.13",
+    "include": [
+        "."
+    ],
+    "exclude": [
+        "**/__pycache__",
+        ".git",
+        "build",
+        "dist"
+    ],
+    "reportMissingImports": "warning",
+    "reportMissingTypeStubs": false,
+    "typeCheckingMode": "basic"
+}
