@@ -786,23 +786,19 @@ def desenhar_dificuldade(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINC
         borda_cor = (max(0, cor_topo[0]-40), max(0, cor_topo[1]-40), max(0, cor_topo[2]-40))
         pygame.draw.rect(screen, borda_cor, rect, 4, border_radius=18)
         
-        # Ícone da dificuldade
-        icones = ['[F]', '[M]', '[D]']  # Fácil, Médio, Difícil
-        fonte_icone = pygame.font.SysFont("arial", 32)
-        icone_surface = fonte_icone.render(icones[i], True, (255, 255, 255))
-        screen.blit(icone_surface, (rect.x + 20, rect.y + 15))
-        
-        # Título da dificuldade
+        # Título da dificuldade (sem ícone)
         fonte_label = pygame.font.SysFont("arial", 32, bold=True)
         label_surface = fonte_label.render(btn["label"], True, (255, 255, 255))
         
-        # Texto principal sem sombra
-        screen.blit(label_surface, (rect.x + 70, rect.y + 15))
+        # Texto principal centralizado
+        texto_x = rect.x + (rect.width - label_surface.get_width()) // 2
+        screen.blit(label_surface, (texto_x, rect.y + 15))
         
-        # Descrição
+        # Descrição centralizada
         fonte_desc = pygame.font.SysFont("arial", 22, italic=True)
         desc_surface = fonte_desc.render(btn["desc"], True, (240, 240, 240))
-        screen.blit(desc_surface, (rect.x + 70, rect.y + 50))
+        desc_x = rect.x + (rect.width - desc_surface.get_width()) // 2
+        screen.blit(desc_surface, (desc_x, rect.y + 50))
         
         # Efeito de brilho no hover
         if hover:
@@ -1273,16 +1269,19 @@ def desenhar_jogo(screen, FONT_SMALL, FONT_BIG, COR_FUNDO_PRINCIPAL, COR_TEXTO_C
             cor_topo = (210, 195, 165)
             cor_baixo = (190, 175, 145)
         
-        # Sombra removida do círculo
-        # Círculo com gradiente (simular com múltiplos círculos)
-        for r in range(raio, 0, -1):
-            ratio = r / raio
-            cor_atual = (
-                int(cor_topo[0] * ratio + cor_baixo[0] * (1 - ratio)),
-                int(cor_topo[1] * ratio + cor_baixo[1] * (1 - ratio)),
-                int(cor_topo[2] * ratio + cor_baixo[2] * (1 - ratio))
-            )
-            pygame.draw.circle(screen, cor_atual, center, r)
+        # Círculo com gradiente usando função auxiliar para evitar vazamento
+        # Criar retângulo para o círculo
+        circle_rect = pygame.Rect(center[0] - raio, center[1] - raio, raio * 2, raio * 2)
+        
+        # Usar cor sólida para círculos (evita vazamento em bordas arredondadas)
+        cor_media = (
+            (cor_topo[0] + cor_baixo[0]) // 2,
+            (cor_topo[1] + cor_baixo[1]) // 2,
+            (cor_topo[2] + cor_baixo[2]) // 2
+        )
+        
+        # Desenhar círculo sem vazamento
+        pygame.draw.circle(screen, cor_media, center, raio)
         
         # Borda do círculo
         pygame.draw.circle(screen, (100, 100, 100), center, raio, 3)
@@ -1328,10 +1327,9 @@ def desenhar_jogo(screen, FONT_SMALL, FONT_BIG, COR_FUNDO_PRINCIPAL, COR_TEXTO_C
             cor_topo = (210, 195, 165)
             cor_baixo = (190, 175, 145)
         
-        # Caixa sem sombra
-        # Gradiente da caixa
-        caixa_gradiente = criar_gradiente_vertical(rect.width, rect.height, cor_topo, cor_baixo)
-        screen.blit(caixa_gradiente, rect)
+        # Caixa sem sombra usando função auxiliar para evitar vazamento
+        # Aplicar gradiente com bordas arredondadas para evitar vazamento de cor
+        aplicar_gradiente_com_bordas(screen, rect, cor_topo, cor_baixo, 12)
         
         # Borda da caixa
         pygame.draw.rect(screen, (120, 100, 80), rect, 3, border_radius=12)
@@ -1461,12 +1459,9 @@ def desenhar_nome_solo(screen, FONT_BIG, FONT_SMALL, cor_input_ativo, cor_input_
         cor_borda = (185, 148, 112)
         borda_width = 3
     
-    # Sombra removida do input
-    # input_rect sem sombra
-    
-    # Gradiente do input
-    input_gradiente = criar_gradiente_vertical(input_width, input_height, cor_fundo_topo, cor_fundo_baixo)
-    screen.blit(input_gradiente, input_rect)
+    # Fundo do input com bordas arredondadas (sem vazamento)
+    # Usar função que previne vazamento de cor
+    aplicar_gradiente_com_bordas(screen, input_rect, cor_fundo_topo, cor_fundo_baixo, 15)
     
     # Borda do input
     pygame.draw.rect(screen, cor_borda, input_rect, borda_width, border_radius=15)

@@ -963,6 +963,9 @@ def tratar_multiplayer(events):
                 elif event.key == pygame.K_RETURN:
                     # Ativa o botão Pronto
                     estado_multiplayer = "adivinhar"
+                    # Parar música ao iniciar o jogo multiplayer (como no modo solo)
+                    if pygame.mixer.music.get_busy():
+                        pygame.mixer.music.stop()
                     multiplayer_letras_adivinhadas = ["" for _ in multiplayer_palavra_secreta]
                     multiplayer_indice_atual = 0
                     letras = list(multiplayer_palavra_secreta)
@@ -981,6 +984,9 @@ def tratar_multiplayer(events):
                 mx, my = event.pos
                 if btn_pronto_rect.collidepoint(mx, my):
                     estado_multiplayer = "adivinhar"
+                    # Parar música ao iniciar o jogo multiplayer (como no modo solo)
+                    if pygame.mixer.music.get_busy():
+                        pygame.mixer.music.stop()
                     multiplayer_letras_adivinhadas = ["" for _ in multiplayer_palavra_secreta]
                     multiplayer_indice_atual = 0
                     letras = list(multiplayer_palavra_secreta)
