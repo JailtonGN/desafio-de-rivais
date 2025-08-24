@@ -1144,30 +1144,26 @@ def desenhar_tela_final(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCI
                 
                 y_entrada = ranking_container.y + 20 + i * 35
                 
-                # Medalhas para os 3 primeiros - usando texto
-                medalhas_texto = ['1°', '2°', '3°', '4°', '5°']
-                fonte_medalha = pygame.font.SysFont("arial", 20, bold=True)
-                cores_medalha = [(255, 215, 0), (192, 192, 192), (205, 127, 50), (160, 160, 160), (120, 120, 120)]
-                medalha_surface = fonte_medalha.render(medalhas_texto[i], True, cores_medalha[i])
-                screen.blit(medalha_surface, (ranking_container.x + 20, y_entrada))
-                
-                # Dados do jogador
+                # Dados do jogador com numeração unificada
                 fonte_ranking = pygame.font.SysFont("arial", 20, bold=True)
                 
-                # Nome
+                # Cores especiais para as posições (ouro, prata, bronze, etc.)
+                cores_posicao = [(255, 215, 0), (192, 192, 192), (205, 127, 50), (160, 160, 160), (120, 120, 120)]
+                
+                # Nome com posição numerada
                 nome_truncado = nome[:15] + '...' if len(nome) > 15 else nome
-                nome_surface = fonte_ranking.render(f"{i+1}. {nome_truncado}", True, (80, 100, 60))
-                screen.blit(nome_surface, (ranking_container.x + 60, y_entrada))
+                nome_surface = fonte_ranking.render(f"{i+1}°. {nome_truncado}", True, cores_posicao[i])
+                screen.blit(nome_surface, (ranking_container.x + 20, y_entrada))
                 
                 # Tempo
                 tempo_surface = fonte_ranking.render(tempo_str, True, (196, 102, 31))
-                screen.blit(tempo_surface, (ranking_container.x + 300, y_entrada))
+                screen.blit(tempo_surface, (ranking_container.x + 280, y_entrada))
                 
                 # Palavra
                 palavra_truncada = palavra[:10] + '...' if len(palavra) > 10 else palavra
                 fonte_palavra = pygame.font.SysFont("arial", 18, italic=True)
                 palavra_surface = fonte_palavra.render(f"({palavra_truncada})", True, (120, 100, 80))
-                screen.blit(palavra_surface, (ranking_container.x + 420, y_entrada + 2))
+                screen.blit(palavra_surface, (ranking_container.x + 400, y_entrada + 2))
     
     return btn_jogar_rect, btn_menu_rect, btn_def_rect
 

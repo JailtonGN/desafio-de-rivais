@@ -85,5 +85,12 @@
   "ZELO": true,
   "XORCA": true,
   "MANA": true,
-  "ZIPE": true
+  "ZIPE": true,
+  "SITO": true,
+  "RASTO": true,
+  "CLERO": true,
+  "ÉPOCA": false,
+  "VOVÔ": false,
+  "INFRA": true,
+  "METER": true
 }
