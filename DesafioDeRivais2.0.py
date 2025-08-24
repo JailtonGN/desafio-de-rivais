@@ -278,11 +278,11 @@ def ir_para_dificuldade():
     dificuldade_escolhida = ""
     tela_atual = TELA_DIFICULDADE
 
-# Botões de dificuldade
+# Botões de dificuldade (PALETA PADRÃO)
 btns_dificuldade = [
-    {"label": "Fácil", "desc": "Palavras de 4-5 letras", "cor": (159, 180, 85), "hover": (120, 150, 60)},
-    {"label": "Médio", "desc": "Palavras de 6-7 letras", "cor": (196, 102, 31), "hover": (160, 80, 20)},
-    {"label": "Difícil", "desc": "Palavras de 8+ letras", "cor": (185, 148, 112), "hover": (140, 120, 80)},
+    {"label": "Fácil", "desc": "Palavras de 4-5 letras", "cor": (120, 160, 60), "hover": (140, 180, 80)},    # Verde suave
+    {"label": "Médio", "desc": "Palavras de 6-7 letras", "cor": (196, 102, 31), "hover": (220, 120, 50)},   # Laranja terroso
+    {"label": "Difícil", "desc": "Palavras de 8+ letras", "cor": (160, 100, 50), "hover": (180, 120, 70)}, # Marrom suave
 ]
 btn_dificuldade_hover = None
 carregando_palavra = False
@@ -1220,12 +1220,23 @@ default_max_letras = 6
 max_letras_rodada = default_max_letras
 
 def desenhar_tela_final_multiplayer(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL, COR_TEXTO_CLARO, COR_TEXTO_CLARO_DESTACADO, nomes_jogadores, tempos, palavras, erros):
-    # Caixa centralizada
+    # Gradiente de fundo (PALETA PADRÃO)
+    screen_width, screen_height = screen.get_size()
+    from interface import criar_gradiente_vertical, desenhar_particulas_fundo
+    gradiente = criar_gradiente_vertical(screen_width, screen_height, (240, 225, 195), (210, 195, 165))
+    screen.blit(gradiente, (0, 0))
+    
+    # Partículas de fundo
+    import pygame
+    tempo = pygame.time.get_ticks()
+    desenhar_particulas_fundo(screen, tempo)
+    
+    # Caixa centralizada (cores da paleta padrão)
     largura, altura = 700, 500
     x = (screen.get_width() - largura) // 2
     y = (screen.get_height() - altura) // 2
-    pygame.draw.rect(screen, (245, 240, 210), (x, y, largura, altura), border_radius=24)
-    pygame.draw.rect(screen, (185, 148, 112), (x, y, largura, altura), 4, border_radius=24)
+    pygame.draw.rect(screen, (235, 220, 190), (x, y, largura, altura), border_radius=24)  # Bege da paleta
+    pygame.draw.rect(screen, (120, 100, 80), (x, y, largura, altura), 4, border_radius=24)  # Borda terrosa
     # Determinar ganhador
     ranking = sorted([(nomes_jogadores[i], tempos[i], palavras[i]) for i in range(len(nomes_jogadores))], key=lambda x: x[1])
     ganhador = ranking[0][0]
@@ -1278,15 +1289,20 @@ def desenhar_tela_final_multiplayer(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_
         screen.blit(tempo_label, (x_centro + rank_label.get_width() + nome_label.get_width(), y_linha))
         screen.blit(palavra_label, (x_centro + rank_label.get_width() + nome_label.get_width() + tempo_label.get_width(), y_linha))
     
-    # Botões
+    # Botão Menu (paleta padrão)
     btn_w, btn_h = 200, 60
     btn_menu_rect = pygame.Rect(x + largura//2 - btn_w//2, y + altura - 80, btn_w, btn_h)
     mouse_x, mouse_y = pygame.mouse.get_pos()
     hover = btn_menu_rect.collidepoint(mouse_x, mouse_y)
-    cor_btn = (185, 148, 112) if hover else COR_BOTAO
-    cor_borda = (196, 102, 31) if hover else COR_BOTAO_HOVER
-    pygame.draw.rect(screen, cor_btn, btn_menu_rect, border_radius=14)
-    pygame.draw.rect(screen, cor_borda, btn_menu_rect, 3, border_radius=14)
+    
+    # Usar aplicação de gradiente sem vazamento
+    from interface import aplicar_gradiente_com_bordas
+    cor_btn_topo = (180, 120, 60) if hover else (160, 100, 50)  # Laranja da paleta
+    cor_btn_baixo = (160, 100, 40) if hover else (140, 80, 30)
+    
+    aplicar_gradiente_com_bordas(screen, btn_menu_rect, cor_btn_topo, cor_btn_baixo, 14)
+    pygame.draw.rect(screen, (120, 70, 30), btn_menu_rect, 3, border_radius=14)
+    
     fonte_btn = pygame.font.SysFont("arial", 24, bold=True)
     menu_label = fonte_btn.render("Menu", True, (255,255,255))
     screen.blit(menu_label, (btn_menu_rect.x + (btn_menu_rect.w - menu_label.get_width())//2, btn_menu_rect.y + (btn_menu_rect.h - menu_label.get_height())//2))

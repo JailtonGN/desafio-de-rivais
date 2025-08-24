@@ -119,9 +119,10 @@ def desenhar_menu(screen, FONT_BIG, FONT_MED, COR_FUNDO_PRINCIPAL, COR_TEXTO_CLA
     width, height = screen.get_size()
     tempo = pygame.time.get_ticks()
     
-    # === FUNDO COM GRADIENTE ===
-    cor_gradiente_topo = (230, 210, 180)  # Bege claro
-    cor_gradiente_baixo = (200, 185, 155)  # Bege mais escuro
+    # === FUNDO COM GRADIENTE (PALETA PADRÃO) ===
+    # Usando a mesma paleta da tela final para consistência
+    cor_gradiente_topo = (240, 225, 195)  # Bege suave
+    cor_gradiente_baixo = (210, 195, 165)  # Bege terroso
     gradiente = criar_gradiente_vertical(width, height, cor_gradiente_topo, cor_gradiente_baixo)
     screen.blit(gradiente, (0, 0))
     
@@ -214,15 +215,17 @@ def desenhar_menu(screen, FONT_BIG, FONT_MED, COR_FUNDO_PRINCIPAL, COR_TEXTO_CLA
         entrada_offset = int((1 - aparicao) * 50)
         scaled_rect.x += entrada_offset
         
-        # Cores do botão com gradiente
+        # Cores do botão com gradiente (PALETA PADRÃO)
         if hover:
-            cor_botao_topo = (200, 185, 155)
-            cor_botao_baixo = (170, 155, 125)
-            cor_borda = COR_TEXTO_CLARO_DESTACADO
+            # Hover - tons mais claros (similar ao botão "Jogar Novamente")
+            cor_botao_topo = (140, 180, 70)
+            cor_botao_baixo = (120, 160, 50)
+            cor_borda = (80, 120, 40)
         else:
-            cor_botao_topo = (185, 170, 140)
-            cor_botao_baixo = (155, 140, 110)
-            cor_borda = COR_TEXTO_CLARO
+            # Estado normal - tons suaves (similar ao padrão da tela final)
+            cor_botao_topo = (120, 160, 60)
+            cor_botao_baixo = (100, 140, 40)
+            cor_borda = (70, 100, 30)
         
         # Aplicar gradiente com bordas arredondadas sem vazamento
         # Usar transparência baseada na animação de entrada
@@ -243,9 +246,9 @@ def desenhar_menu(screen, FONT_BIG, FONT_MED, COR_FUNDO_PRINCIPAL, COR_TEXTO_CLA
         # Borda do botão
         pygame.draw.rect(screen, cor_borda, scaled_rect, 3, border_radius=15)
         
-        # Texto do botão
+        # Texto do botão (cor terrosa padrão)
         fonte_botao = pygame.font.SysFont("arial", 28, bold=True)
-        texto_botao = fonte_botao.render(botao.texto, True, (60, 50, 40))
+        texto_botao = fonte_botao.render(botao.texto, True, (255, 255, 255))  # Texto branco para contraste
         
         # Centralizar texto
         texto_x = scaled_rect.centerx - texto_botao.get_width()//2
@@ -306,11 +309,11 @@ def desenhar_config(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
     altura_btn = 36
     altura_btn_peq = 32
     
-    # === Seção Áudio ===
+    # === Seção Áudio (cores padrão terrosas) ===
     fonte_secao = pygame.font.SysFont("arial", 28, bold=True)
     desenhar_texto_simples(
         screen, fonte_secao, "AUDIO",
-        (150, 120, 90),
+        (120, 100, 80),  # Tom terroso padrão
         x_label-20, y
     )
     y += 48
@@ -358,12 +361,14 @@ def desenhar_config(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
     hover_som = btn_som.collidepoint(mx, my)
     
     if SOM_ATIVO:
-        cor_som_topo = (120, 240, 120) if hover_som else (100, 220, 100)
-        cor_som_baixo = (80, 200, 80) if hover_som else (70, 180, 70)
-        txt_som = FONT_SMALL.render("Ativo", True, (40, 80, 40))
+        # Verde suave da paleta padrão
+        cor_som_topo = (120, 160, 60) if hover_som else (100, 140, 40)
+        cor_som_baixo = (100, 140, 40) if hover_som else (80, 120, 20)
+        txt_som = FONT_SMALL.render("Ativo", True, (255, 255, 255))
     else:
-        cor_som_topo = (200, 120, 120) if hover_som else (180, 100, 100)
-        cor_som_baixo = (160, 80, 80) if hover_som else (140, 70, 70)
+        # Vermelho suave da paleta padrão
+        cor_som_topo = (180, 100, 50) if hover_som else (160, 80, 30)
+        cor_som_baixo = (160, 80, 30) if hover_som else (140, 70, 20)
         txt_som = FONT_SMALL.render("Inativo", True, (255, 255, 255))
     
     # Aplicar gradiente com bordas sem vazamento
@@ -408,12 +413,14 @@ def desenhar_config(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
     hover_mus = btn_mus.collidepoint(mx, my)
     
     if MUSICA_ATIVA:
-        cor_mus_topo = (120, 240, 120) if hover_mus else (100, 220, 100)
-        cor_mus_baixo = (80, 200, 80) if hover_mus else (70, 180, 70)
-        txt_mus = FONT_SMALL.render("Ativo", True, (40, 80, 40))
+        # Verde suave da paleta padrão
+        cor_mus_topo = (120, 160, 60) if hover_mus else (100, 140, 40)
+        cor_mus_baixo = (100, 140, 40) if hover_mus else (80, 120, 20)
+        txt_mus = FONT_SMALL.render("Ativo", True, (255, 255, 255))
     else:
-        cor_mus_topo = (200, 120, 120) if hover_mus else (180, 100, 100)
-        cor_mus_baixo = (160, 80, 80) if hover_mus else (140, 70, 70)
+        # Vermelho suave da paleta padrão
+        cor_mus_topo = (180, 100, 50) if hover_mus else (160, 80, 30)
+        cor_mus_baixo = (160, 80, 30) if hover_mus else (140, 70, 20)
         txt_mus = FONT_SMALL.render("Inativo", True, (255, 255, 255))
     
     # Aplicar gradiente com bordas sem vazamento
@@ -421,11 +428,11 @@ def desenhar_config(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
     pygame.draw.rect(screen, (100, 100, 100), btn_mus, 2, border_radius=8)
     screen.blit(txt_mus, (btn_mus.x+12, btn_mus.y + (btn_mus.height - txt_mus.get_height()) // 2))
     
-    # === Seção Progresso ===
+    # === Seção Progresso (cores padrão terrosas) ===
     y += 60
     desenhar_texto_simples(
         screen, fonte_secao, "PROGRESSO",
-        (120, 90, 150),
+        (120, 100, 80),  # Tom terroso padrão
         x_label-20, y
     )
     y += 48
@@ -436,11 +443,11 @@ def desenhar_config(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
     btn_reset_palavras = pygame.Rect(x_label, y, btn_reset_palavras_w, altura_btn)
     hover_reset_p = btn_reset_palavras.collidepoint(mx, my)
     
-    cor_reset_p_topo = (240, 160, 160) if hover_reset_p else (220, 140, 140)
-    cor_reset_p_baixo = (200, 120, 120) if hover_reset_p else (180, 100, 100)
+    cor_reset_p_topo = (180, 120, 60) if hover_reset_p else (160, 100, 40)
+    cor_reset_p_baixo = (160, 100, 40) if hover_reset_p else (140, 80, 20)
     # Aplicar gradientes com bordas sem vazamento
     aplicar_gradiente_com_bordas(screen, btn_reset_palavras, cor_reset_p_topo, cor_reset_p_baixo, 8)
-    pygame.draw.rect(screen, (150, 80, 80), btn_reset_palavras, 2, border_radius=8)
+    pygame.draw.rect(screen, (120, 70, 30), btn_reset_palavras, 2, border_radius=8)
     screen.blit(txt_reset_palavras, (btn_reset_palavras.x+14, btn_reset_palavras.y + (btn_reset_palavras.height - txt_reset_palavras.get_height()) // 2))
     
     txt_reset_ranking = FONT_SMALL.render("Resetar Ranking", True, (60,60,60))
@@ -449,10 +456,10 @@ def desenhar_config(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
     btn_reset_ranking = pygame.Rect(x_label+btn_reset_palavras_w+espacamento_progresso, y, btn_reset_ranking_w, altura_btn)
     hover_reset_r = btn_reset_ranking.collidepoint(mx, my)
     
-    cor_reset_r_topo = (240, 160, 160) if hover_reset_r else (220, 140, 140)
-    cor_reset_r_baixo = (200, 120, 120) if hover_reset_r else (180, 100, 100)
+    cor_reset_r_topo = (180, 120, 60) if hover_reset_r else (160, 100, 40)
+    cor_reset_r_baixo = (160, 100, 40) if hover_reset_r else (140, 80, 20)
     aplicar_gradiente_com_bordas(screen, btn_reset_ranking, cor_reset_r_topo, cor_reset_r_baixo, 8)
-    pygame.draw.rect(screen, (150, 80, 80), btn_reset_ranking, 2, border_radius=8)
+    pygame.draw.rect(screen, (120, 70, 30), btn_reset_ranking, 2, border_radius=8)
     screen.blit(txt_reset_ranking, (btn_reset_ranking.x+14, btn_reset_ranking.y + (btn_reset_ranking.height - txt_reset_ranking.get_height()) // 2))
     
     # === Botão Salvar e Sair Elegante ===
@@ -463,10 +470,10 @@ def desenhar_config(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
     btn_salvar_sair = pygame.Rect(btn_salvar_sair_x, btn_salvar_sair_y, btn_salvar_sair_w, btn_salvar_sair_h)
     hover_salvar = btn_salvar_sair.collidepoint(mx, my)
     
-    cor_salvar_topo = (140, 200, 260) if hover_salvar else (120, 180, 240)
-    cor_salvar_baixo = (100, 160, 220) if hover_salvar else (80, 140, 200)
+    cor_salvar_topo = (120, 140, 180) if hover_salvar else (100, 120, 160)
+    cor_salvar_baixo = (100, 120, 160) if hover_salvar else (80, 100, 140)
     aplicar_gradiente_com_bordas(screen, btn_salvar_sair, cor_salvar_topo, cor_salvar_baixo, 12)
-    pygame.draw.rect(screen, (60, 100, 160), btn_salvar_sair, 3, border_radius=12)
+    pygame.draw.rect(screen, (80, 100, 140), btn_salvar_sair, 3, border_radius=12)
     
     fonte_salvar = pygame.font.SysFont("arial", 28, bold=True)
     txt_salvar_sair = fonte_salvar.render("Salvar e Sair", True, (255,255,255))
@@ -498,8 +505,8 @@ def desenhar_placar(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
     width, height = screen.get_size()
     tempo = pygame.time.get_ticks()
     
-    # Gradiente de fundo
-    gradiente = criar_gradiente_vertical(width, height, (235, 220, 190), (205, 190, 160))
+    # Gradiente de fundo (PALETA PADRÃO)
+    gradiente = criar_gradiente_vertical(width, height, (240, 225, 195), (210, 195, 165))
     screen.blit(gradiente, (0, 0))
     
     # Partículas de fundo
@@ -520,24 +527,24 @@ def desenhar_placar(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
     except Exception:
         ranking = []
     
-    # Separar por dificuldade com cores temáticas
+    # Separar por dificuldade com cores temáticas (PALETA PADRÃO)
     dificuldades = [
-        {'nome': 'Fácil', 'cor_titulo': (100, 180, 100), 'cor_fundo': (240, 255, 240)},
-        {'nome': 'Médio', 'cor_titulo': (200, 150, 50), 'cor_fundo': (255, 250, 235)},
-        {'nome': 'Difícil', 'cor_titulo': (180, 100, 100), 'cor_fundo': (255, 240, 240)}
+        {'nome': 'Fácil', 'cor_titulo': (120, 160, 60), 'cor_fundo': (245, 250, 240)},     # Verde suave
+        {'nome': 'Médio', 'cor_titulo': (196, 102, 31), 'cor_fundo': (250, 245, 235)},    # Laranja terroso
+        {'nome': 'Difícil', 'cor_titulo': (180, 60, 60), 'cor_fundo': (250, 240, 240)}   # Vermelho suave
     ]
     
     y_base = 140
     # Ajustar largura das colunas baseado na resolução
     if width >= 1920:
-        col_width = 380
-        spacing = 20
+        col_width = 360  # Reduzido para dar mais espaço
+        spacing = 40     # Aumentado para evitar que se toquem
     elif width >= 1200:
-        col_width = 350
-        spacing = 15
+        col_width = 320  # Reduzido para dar mais espaço
+        spacing = 30     # Aumentado para evitar que se toquem
     else:
-        col_width = 300
-        spacing = 10
+        col_width = 280  # Reduzido para dar mais espaço
+        spacing = 20     # Aumentado para evitar que se toquem
         
     total_width = (col_width * len(dificuldades)) + (spacing * (len(dificuldades) - 1))
     x_start = width//2 - total_width//2
@@ -553,25 +560,24 @@ def desenhar_placar(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
         # Calcular posição da coluna com espaçamento correto
         x_dif = x_start + idx * (col_width + spacing)
         
-        # Container da coluna com fundo sutil - ajustado para centralização
-        container_padding = 15
+        # Container da coluna com fundo sutil - aumentado para 10 jogadores
+        container_padding = 10  # Reduzido para evitar vazamento
         coluna_rect = pygame.Rect(
             x_dif - container_padding, 
             y_base - 20, 
             col_width + (container_padding * 2), 
-            450
+            520  # Aumentado para comportar 10 jogadores (10 * 42 + margem)
         )
         
-        # Gradiente da coluna
-        coluna_gradiente = criar_gradiente_vertical(
-            coluna_rect.width, coluna_rect.height,
-            cor_fundo, (cor_fundo[0]-20, cor_fundo[1]-20, cor_fundo[2]-20)
-        )
+        # Fundo da coluna com bordas arredondadas usando função auxiliar
+        cor_fundo_topo = cor_fundo
+        cor_fundo_baixo = (cor_fundo[0]-15, cor_fundo[1]-15, cor_fundo[2]-15)
         
-    # Coluna sem sombra
-    # Fundo da coluna
-        screen.blit(coluna_gradiente, coluna_rect)
-        pygame.draw.rect(screen, cor_titulo, coluna_rect, 3, border_radius=15)
+        # Aplicar gradiente com bordas arredondadas para evitar cantos brancos
+        aplicar_gradiente_com_bordas(screen, coluna_rect, cor_fundo_topo, cor_fundo_baixo, 12)
+        
+        # Borda mais sutil para evitar vazamento
+        pygame.draw.rect(screen, cor_titulo, coluna_rect, 2, border_radius=12)  # Borda mais fina e raio menor
         
         # Título da dificuldade sem efeito glow
         fonte_dificuldade = pygame.font.SysFont("arial", 32, bold=True)
@@ -599,62 +605,97 @@ def desenhar_placar(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL,
             palavra = r.get('palavra', '-')
             tempo_str = f"{tempo_val:.2f}s"
             
-            # Posição da linha
-            y_linha = y_base + 70 + i*38
+            # Posição da linha com espaçamento adequado para 10 jogadores
+            y_linha = y_base + 75 + i*40  # Espaçamento ajustado para 10 jogadores
             
-            # Fundo da linha (alternado) - ajustado para novo layout
+            # Fundo da linha (alternado) - removido o branco para evitar vazamento
             if i % 2 == 0:
                 linha_bg = pygame.Rect(
-                    coluna_rect.x + 5, 
-                    y_linha - 5, 
-                    coluna_rect.width - 10, 
+                    coluna_rect.x + 8,   # Mais margem interna
+                    y_linha - 6, 
+                    coluna_rect.width - 16,  # Margem em ambos os lados
                     32
                 )
-                linha_bg_color = (255, 255, 255, 30)
+                # Usar uma cor sutil da paleta em vez de branco
+                linha_bg_color = (cor_fundo[0]-10, cor_fundo[1]-10, cor_fundo[2]-10, 15)  # Cor da dificuldade mais escura
                 linha_surface = pygame.Surface((linha_bg.width, linha_bg.height), pygame.SRCALPHA)
                 linha_surface.fill(linha_bg_color)
                 screen.blit(linha_surface, linha_bg)
+                # Sem borda para evitar vazamento completamente
             
-            # Medalhas para os 3 primeiros - usando texto
-            medalhas = ['[1°]', '[2°]', '[3°]']
-            if i < 3 and medalhas:
-                fonte_medalha = pygame.font.SysFont("arial", 16, bold=True)
-                cores_medalha = [(255, 215, 0), (192, 192, 192), (205, 127, 50)]  # Dourado, Prata, Bronze
-                medalha_label = fonte_medalha.render(medalhas[i], True, cores_medalha[i])
-                screen.blit(medalha_label, (coluna_rect.x + 8, y_linha - 2))
+            # === FONTE ÚNICA PERSONALIZADA PARA COLOCAÇÃO ===
+            fonte_colocacao = pygame.font.SysFont("arial", 22, bold=True)
+            fonte_nome = pygame.font.SysFont("arial", 18, bold=True)  # Mesma fonte para nome e palavra
+            fonte_tempo = pygame.font.SysFont("arial", 16, bold=False)
             
-            # Fontes diferenciadas
-            fonte_pos = pygame.font.SysFont("arial", 18, bold=True)
-            fonte_nome = pygame.font.SysFont("arial", 20, bold=True)
-            fonte_tempo = pygame.font.SysFont("arial", 18, bold=False)
-            fonte_palavra = pygame.font.SysFont("arial", 16, italic=True)
+            # Cores especiais para os 3 primeiros, normal para os demais
+            if i < 3:
+                cores_colocacao = [(255, 215, 0), (192, 192, 192), (205, 127, 50)]  # Ouro, Prata, Bronze
+                cor_colocacao = cores_colocacao[i]
+                simbolos_colocacao = ['1º', '2º', '3º']
+                colocacao_text = simbolos_colocacao[i]
+            else:
+                cor_colocacao = (80, 80, 80)
+                colocacao_text = f"{i+1}º"
             
-            # Cores temáticas
-            cor_pos = (80, 80, 80)
-            cor_nome = cor_titulo
-            cor_tempo = (196, 102, 31)
-            cor_palavra = (120, 100, 80)
+            # === LAYOUT ALINHADO EM UMA LINHA ===
+            x_base = coluna_rect.x + 12  # Mais espaço da borda
             
-            # Número da posição - ajustado para nova coluna
-            pos_text = f"{i+1}."
-            pos_label = fonte_pos.render(pos_text, True, cor_pos)
-            screen.blit(pos_label, (coluna_rect.x + 25, y_linha))
+            # 1. COLOCAÇÃO (posição fixa)
+            colocacao_label = fonte_colocacao.render(colocacao_text, True, cor_colocacao)
+            screen.blit(colocacao_label, (x_base, y_linha + 2))
             
-            # Nome do jogador - ajustado para nova coluna
-            nome_truncado = nome[:8] + '...' if len(nome) > 8 else nome  # Reduzido para caber melhor
-            nome_label = fonte_nome.render(nome_truncado, True, cor_nome)
-            screen.blit(nome_label, (coluna_rect.x + 50, y_linha))
+            # 2. NOME - PALAVRA (ajuste inteligente de tamanho baseado no espaço disponível)
+            nome_x = x_base + 50
             
-            # Tempo - posição relativa ao container
-            tempo_label = fonte_tempo.render(tempo_str, True, cor_tempo)
-            tempo_x = coluna_rect.x + coluna_rect.width - 120  # Alinhado à direita do container
-            screen.blit(tempo_label, (tempo_x, y_linha + 2))
+            # Calcular espaço disponível para nome + palavra
+            tempo_label_temp = fonte_tempo.render(tempo_str, True, (196, 102, 31))
+            espaco_tempo = tempo_label_temp.get_width() + 20  # Largura do tempo + margem
+            espaco_disponivel = coluna_rect.width - (nome_x - coluna_rect.x) - espaco_tempo
             
-            # Palavra - posição relativa ao container
-            palavra_truncada = palavra[:8] + '...' if len(palavra) > 8 else palavra
-            palavra_label = fonte_palavra.render(f"[{palavra_truncada}]", True, cor_palavra)
-            palavra_x = coluna_rect.x + coluna_rect.width - 90  # Alinhado à direita do container
-            screen.blit(palavra_label, (palavra_x, y_linha + 18))
+            # Truncamento inteligente para o nome
+            nome_truncado = nome
+            for i in range(len(nome), 0, -1):
+                nome_test = nome[:i] + ('...' if i < len(nome) else '')
+                nome_width = fonte_nome.size(nome_test)[0]
+                if nome_width <= espaco_disponivel * 0.6:  # 60% do espaço para o nome
+                    nome_truncado = nome_test
+                    break
+            
+            # Truncamento inteligente para a palavra
+            palavra_truncada = palavra
+            separador_width = fonte_nome.size(" - ")[0]
+            nome_final_width = fonte_nome.size(nome_truncado)[0]
+            espaco_palavra = espaco_disponivel - nome_final_width - separador_width
+            
+            for i in range(len(palavra), 0, -1):
+                palavra_test = palavra[:i] + ('...' if i < len(palavra) else '')
+                palavra_width = fonte_nome.size(palavra_test)[0]
+                if palavra_width <= espaco_palavra:
+                    palavra_truncada = palavra_test
+                    break
+            
+            # Texto combinado: Nome - Palavra
+            texto_combinado = f"{nome_truncado} - {palavra_truncada}"
+            
+            # Renderizar nome
+            nome_label = fonte_nome.render(nome_truncado, True, cor_titulo)
+            screen.blit(nome_label, (nome_x, y_linha + 2))
+            
+            # Renderizar separador
+            separador_x = nome_x + nome_label.get_width() + 6
+            separador_label = fonte_nome.render(" - ", True, (120, 100, 80))  # Cor neutra
+            screen.blit(separador_label, (separador_x, y_linha + 2))
+            
+            # Renderizar palavra com cor diferente
+            palavra_x = separador_x + separador_label.get_width()
+            palavra_label = fonte_nome.render(palavra_truncada, True, (150, 80, 40))  # Cor laranja terrosa
+            screen.blit(palavra_label, (palavra_x, y_linha + 2))
+            
+            # 3. TEMPO (alinhado à direita do container, com mais margem)
+            tempo_label = fonte_tempo.render(tempo_str, True, (196, 102, 31))
+            tempo_x = coluna_rect.x + coluna_rect.width - tempo_label.get_width() - 15  # Mais margem
+            screen.blit(tempo_label, (tempo_x, y_linha + 6))  # Centralizado verticalmente
     
     # Instrução elegante - ranking
     fonte_instrucao = pygame.font.SysFont("arial", 20, italic=True)
@@ -669,8 +710,8 @@ def desenhar_dificuldade(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINC
     width, height = screen.get_size()
     tempo = pygame.time.get_ticks()
     
-    # Gradiente de fundo
-    gradiente = criar_gradiente_vertical(width, height, (245, 230, 200), (215, 200, 170))
+    # Gradiente de fundo (PALETA PADRÃO)
+    gradiente = criar_gradiente_vertical(width, height, (240, 225, 195), (210, 195, 165))
     screen.blit(gradiente, (0, 0))
     
     # Partículas de fundo
@@ -1140,11 +1181,11 @@ def desenhar_jogo(screen, FONT_SMALL, FONT_BIG, COR_FUNDO_PRINCIPAL, COR_TEXTO_C
     width, height = screen.get_size()
     tempo = pygame.time.get_ticks()
     
-    # Gradiente de fundo dinâmico
+    # Gradiente de fundo dinâmico (PALETA PADRÃO)
     if rodada_ativa:
-        gradiente = criar_gradiente_vertical(width, height, (250, 240, 210), (220, 210, 180))
+        gradiente = criar_gradiente_vertical(width, height, (240, 225, 195), (210, 195, 165))
     else:
-        gradiente = criar_gradiente_vertical(width, height, (240, 230, 200), (210, 200, 170))
+        gradiente = criar_gradiente_vertical(width, height, (235, 220, 190), (205, 190, 160))
     screen.blit(gradiente, (0, 0))
     
     # Partículas de fundo
@@ -1213,24 +1254,24 @@ def desenhar_jogo(screen, FONT_SMALL, FONT_BIG, COR_FUNDO_PRINCIPAL, COR_TEXTO_C
         else:
             raio = raio_base
         
-        # Cores baseadas no estado
+        # Cores baseadas no estado (PALETA PADRÃO)
         if i == feedback_erro_circulo_idx and feedback_erro_circulo_timer > 0:
             # Erro - vermelho pulsante
             pulse = math.sin(tempo * 0.02) * 0.3 + 0.7
-            cor_topo = (int(220 * pulse), int(80 * pulse), int(80 * pulse))
-            cor_baixo = (int(180 * pulse), int(60 * pulse), int(60 * pulse))
+            cor_topo = (int(180 * pulse), int(60 * pulse), int(60 * pulse))
+            cor_baixo = (int(160 * pulse), int(50 * pulse), int(50 * pulse))
         elif letras_embaralhadas_usadas[i]:
-            # Usado - verde suave
-            cor_topo = (120, 220, 140)
-            cor_baixo = (100, 200, 120)
+            # Usado - verde suave da paleta
+            cor_topo = (120, 160, 60)
+            cor_baixo = (100, 140, 40)
         elif hover:
-            # Hover - azul claro
-            cor_topo = (180, 200, 240)
-            cor_baixo = (160, 180, 220)
+            # Hover - azul suave da paleta
+            cor_topo = (140, 160, 200)
+            cor_baixo = (120, 140, 180)
         else:
-            # Padrão - marrom claro
-            cor_topo = (230, 200, 160)
-            cor_baixo = (210, 180, 140)
+            # Padrão - bege terroso da paleta
+            cor_topo = (210, 195, 165)
+            cor_baixo = (190, 175, 145)
         
         # Sombra removida do círculo
         # Círculo com gradiente (simular com múltiplos círculos)
@@ -1269,23 +1310,23 @@ def desenhar_jogo(screen, FONT_SMALL, FONT_BIG, COR_FUNDO_PRINCIPAL, COR_TEXTO_C
     for i in range(len(palavra_original)):
         rect = pygame.Rect(cx2 + i*65, cy2, 55, 70)
         
-        # Estado da caixa
+        # Estado da caixa (PALETA PADRÃO)
         if i == feedback_erro_idx and feedback_erro_timer > 0:
-            # Erro - vermelho
-            cor_topo = (240, 100, 100)
-            cor_baixo = (200, 80, 80)
+            # Erro - vermelho suave
+            cor_topo = (180, 60, 60)
+            cor_baixo = (160, 50, 50)
         elif letras_adivinhadas[i]:
-            # Preenchido - verde
-            cor_topo = (140, 220, 140)
-            cor_baixo = (120, 200, 120)
+            # Preenchido - verde suave da paleta
+            cor_topo = (120, 160, 60)
+            cor_baixo = (100, 140, 40)
         elif i == indice_atual:
-            # Atual - azul
-            cor_topo = (140, 180, 240)
-            cor_baixo = (120, 160, 220)
+            # Atual - azul suave da paleta
+            cor_topo = (120, 140, 180)
+            cor_baixo = (100, 120, 160)
         else:
-            # Vazio - bege
-            cor_topo = (230, 210, 180)
-            cor_baixo = (210, 190, 160)
+            # Vazio - bege da paleta
+            cor_topo = (210, 195, 165)
+            cor_baixo = (190, 175, 145)
         
         # Caixa sem sombra
         # Gradiente da caixa
@@ -1311,11 +1352,13 @@ def desenhar_jogo(screen, FONT_SMALL, FONT_BIG, COR_FUNDO_PRINCIPAL, COR_TEXTO_C
         hover_desistir = botao_desistir_rect.collidepoint(pygame.mouse.get_pos())
         
         if hover_desistir:
-            cor_desistir_topo = (220, 100, 100)
-            cor_desistir_baixo = (180, 80, 80)
+            # Hover - vermelho da paleta
+            cor_desistir_topo = (180, 100, 50)
+            cor_desistir_baixo = (160, 80, 30)
         else:
-            cor_desistir_topo = (200, 120, 120)
-            cor_desistir_baixo = (160, 100, 100)
+            # Normal - laranja suave da paleta
+            cor_desistir_topo = (160, 100, 40)
+            cor_desistir_baixo = (140, 80, 20)
         
         # Sombra removida - botão sem sombra
         
@@ -1363,8 +1406,8 @@ def desenhar_nome_solo(screen, FONT_BIG, FONT_SMALL, cor_input_ativo, cor_input_
     width, height = screen.get_size()
     tempo = pygame.time.get_ticks()
     
-    # Gradiente de fundo
-    gradiente = criar_gradiente_vertical(width, height, (255, 245, 215), (235, 225, 195))
+    # Gradiente de fundo (PALETA PADRÃO)
+    gradiente = criar_gradiente_vertical(width, height, (240, 225, 195), (210, 195, 165))
     screen.blit(gradiente, (0, 0))
     
     # Partículas de fundo
@@ -1379,7 +1422,7 @@ def desenhar_nome_solo(screen, FONT_BIG, FONT_SMALL, cor_input_ativo, cor_input_
     
     desenhar_texto_simples(
         screen, fonte_titulo, titulo_text,
-        (95, 111, 82),
+        (120, 100, 80),  # Tom terroso da paleta padrão
         width//2 - fonte_titulo.size(titulo_text)[0]//2, 80 + offset_titulo
     )
     
@@ -1550,8 +1593,8 @@ def desenhar_config_multiplayer_config(screen, FONT_BIG, FONT_MED, COR_FUNDO_PRI
     tempo = pygame.time.get_ticks()
     mouse_x, mouse_y = pygame.mouse.get_pos()
     
-    # Gradiente de fundo
-    gradiente = criar_gradiente_vertical(width, height, (250, 235, 205), (220, 205, 175))
+    # Gradiente de fundo (PALETA PADRÃO)
+    gradiente = criar_gradiente_vertical(width, height, (240, 225, 195), (210, 195, 165))
     screen.blit(gradiente, (0, 0))
     
     # Partículas de fundo
@@ -1594,26 +1637,19 @@ def desenhar_config_multiplayer_config(screen, FONT_BIG, FONT_MED, COR_FUNDO_PRI
     hover_menos = menos_rect.collidepoint(mouse_x, mouse_y)
     hover_mais = mais_rect.collidepoint(mouse_x, mouse_y)
     
-    # Botão menos sem sombra
-    cor_menos_topo = COR_BOTAO_HOVER if hover_menos else COR_BOTAO
-    cor_menos_baixo = (cor_menos_topo[0]-20, cor_menos_topo[1]-20, cor_menos_topo[2]-20)
+    # Botão menos com gradiente e bordas arredondadas (sem vazamento)
+    cor_menos_topo = (160, 100, 40) if hover_menos else (140, 80, 20)  # Paleta padrão
+    cor_menos_baixo = (140, 80, 20) if hover_menos else (120, 60, 10)
     
-    menos_grad = criar_gradiente_vertical(btn_size_small, btn_size_small, cor_menos_topo, cor_menos_baixo)
-    desenhar_rect_simples(screen, cor_menos_topo, menos_rect, btn_size_small//2)
-    
-    # Criar círculo com gradiente
-    menos_surface = pygame.Surface((btn_size_small, btn_size_small), pygame.SRCALPHA)
-    pygame.draw.circle(menos_surface, cor_menos_topo, (btn_size_small//2, btn_size_small//2), btn_size_small//2)
-    screen.blit(menos_surface, menos_rect)
+    # Usar função que previne vazamento
+    aplicar_gradiente_com_bordas(screen, menos_rect, cor_menos_topo, cor_menos_baixo, btn_size_small//2)
     pygame.draw.circle(screen, (100, 100, 100), menos_rect.center, btn_size_small//2, 2)
     
-    # Botão mais
-    cor_mais_topo = COR_BOTAO_HOVER if hover_mais else COR_BOTAO
-    cor_mais_baixo = (cor_mais_topo[0]-20, cor_mais_topo[1]-20, cor_mais_topo[2]-20)
+    # Botão mais com gradiente e bordas arredondadas (sem vazamento)
+    cor_mais_topo = (160, 100, 40) if hover_mais else (140, 80, 20)  # Paleta padrão
+    cor_mais_baixo = (140, 80, 20) if hover_mais else (120, 60, 10)
     
-    mais_surface = pygame.Surface((btn_size_small, btn_size_small), pygame.SRCALPHA)
-    pygame.draw.circle(mais_surface, cor_mais_topo, (btn_size_small//2, btn_size_small//2), btn_size_small//2)
-    screen.blit(mais_surface, mais_rect)
+    aplicar_gradiente_com_bordas(screen, mais_rect, cor_mais_topo, cor_mais_baixo, btn_size_small//2)
     pygame.draw.circle(screen, (100, 100, 100), mais_rect.center, btn_size_small//2, 2)
     
     # Setas
@@ -1653,17 +1689,15 @@ def desenhar_config_multiplayer_config(screen, FONT_BIG, FONT_MED, COR_FUNDO_PRI
     hover_menos_l = menos_l_rect.collidepoint(mouse_x, mouse_y)
     hover_mais_l = mais_l_rect.collidepoint(mouse_x, mouse_y)
     
-    # Botões de letras (mesmo estilo)
-    cor_menos_l_topo = COR_BOTAO_HOVER if hover_menos_l else COR_BOTAO
-    menos_l_surface = pygame.Surface((btn_size_small, btn_size_small), pygame.SRCALPHA)
-    pygame.draw.circle(menos_l_surface, cor_menos_l_topo, (btn_size_small//2, btn_size_small//2), btn_size_small//2)
-    screen.blit(menos_l_surface, menos_l_rect)
+    # Botões de letras com gradiente (paleta padrão, sem vazamento)
+    cor_menos_l_topo = (160, 100, 40) if hover_menos_l else (140, 80, 20)
+    cor_menos_l_baixo = (140, 80, 20) if hover_menos_l else (120, 60, 10)
+    aplicar_gradiente_com_bordas(screen, menos_l_rect, cor_menos_l_topo, cor_menos_l_baixo, btn_size_small//2)
     pygame.draw.circle(screen, (100, 100, 100), menos_l_rect.center, btn_size_small//2, 2)
     
-    cor_mais_l_topo = COR_BOTAO_HOVER if hover_mais_l else COR_BOTAO
-    mais_l_surface = pygame.Surface((btn_size_small, btn_size_small), pygame.SRCALPHA)
-    pygame.draw.circle(mais_l_surface, cor_mais_l_topo, (btn_size_small//2, btn_size_small//2), btn_size_small//2)
-    screen.blit(mais_l_surface, mais_l_rect)
+    cor_mais_l_topo = (160, 100, 40) if hover_mais_l else (140, 80, 20)
+    cor_mais_l_baixo = (140, 80, 20) if hover_mais_l else (120, 60, 10)
+    aplicar_gradiente_com_bordas(screen, mais_l_rect, cor_mais_l_topo, cor_mais_l_baixo, btn_size_small//2)
     pygame.draw.circle(screen, (100, 100, 100), mais_l_rect.center, btn_size_small//2, 2)
     
     screen.blit(seta_esq, (menos_l_rect.x + (btn_size_small - seta_esq.get_width())//2, menos_l_rect.y + (btn_size_small - seta_esq.get_height())//2))
@@ -1688,32 +1722,30 @@ def desenhar_config_multiplayer_config(screen, FONT_BIG, FONT_MED, COR_FUNDO_PRI
     hover_avancar = btn_avancar_rect.collidepoint(mouse_x, mouse_y) and (2 <= num_jogadores <= 6 and 4 <= max_letras_rodada <= 20)
     hover_voltar = btn_voltar_rect.collidepoint(mouse_x, mouse_y)
     
-    # Botão avançar
+    # Botão avançar (paleta padrão)
     if 2 <= num_jogadores <= 6 and 4 <= max_letras_rodada <= 20:
-        cor_avancar_topo = COR_BOTAO_HOVER if hover_avancar else (120, 180, 120)
-        cor_avancar_baixo = (cor_avancar_topo[0]-20, cor_avancar_topo[1]-20, cor_avancar_topo[2]-20)
+        cor_avancar_topo = (140, 180, 70) if hover_avancar else (120, 160, 60)  # Verde da paleta
+        cor_avancar_baixo = (120, 160, 50) if hover_avancar else (100, 140, 40)
+        borda_cor = (80, 120, 40)
     else:
         cor_avancar_topo = (160, 160, 160)
         cor_avancar_baixo = (140, 140, 140)
+        borda_cor = (100, 100, 100)
     
-    desenhar_rect_simples(screen, cor_avancar_topo, btn_avancar_rect, 16)
-    avancar_grad = criar_gradiente_vertical(180, 60, cor_avancar_topo, cor_avancar_baixo)
-    screen.blit(avancar_grad, btn_avancar_rect)
-    pygame.draw.rect(screen, (80, 120, 80), btn_avancar_rect, 3, border_radius=16)
+    aplicar_gradiente_com_bordas(screen, btn_avancar_rect, cor_avancar_topo, cor_avancar_baixo, 16)
+    pygame.draw.rect(screen, borda_cor, btn_avancar_rect, 3, border_radius=16)
     
     fonte_botao = pygame.font.SysFont("arial", 26, bold=True)
     avancar_text = "Avançar"
     avancar_label = fonte_botao.render(avancar_text, True, (255, 255, 255))
     screen.blit(avancar_label, (btn_avancar_rect.x + (btn_avancar_rect.w - avancar_label.get_width())//2, btn_avancar_rect.y + 15))
     
-    # Botão voltar
-    cor_voltar_topo = COR_BOTAO_HOVER if hover_voltar else COR_BOTAO
-    cor_voltar_baixo = (cor_voltar_topo[0]-20, cor_voltar_topo[1]-20, cor_voltar_topo[2]-20)
+    # Botão voltar (paleta padrão)
+    cor_voltar_topo = (180, 120, 60) if hover_voltar else (160, 100, 50)  # Laranja da paleta
+    cor_voltar_baixo = (160, 100, 40) if hover_voltar else (140, 80, 30)
     
-    desenhar_rect_simples(screen, cor_voltar_topo, btn_voltar_rect, 16)
-    voltar_grad = criar_gradiente_vertical(160, 60, cor_voltar_topo, cor_voltar_baixo)
-    screen.blit(voltar_grad, btn_voltar_rect)
-    pygame.draw.rect(screen, (120, 100, 80), btn_voltar_rect, 3, border_radius=16)
+    aplicar_gradiente_com_bordas(screen, btn_voltar_rect, cor_voltar_topo, cor_voltar_baixo, 16)
+    pygame.draw.rect(screen, (120, 70, 30), btn_voltar_rect, 3, border_radius=16)
     
     voltar_text = "Voltar"
     voltar_label = fonte_botao.render(voltar_text, True, (255, 255, 255))
@@ -1723,7 +1755,16 @@ def desenhar_config_multiplayer_config(screen, FONT_BIG, FONT_MED, COR_FUNDO_PRI
 
 def desenhar_config_multiplayer_nomes(screen, FONT_BIG, FONT_MED, FONT_SMALL, COR_FUNDO_PRINCIPAL, COR_TEXTO_CLARO, cor_input_inativo, cor_input_borda, COR_BOTAO, COR_BOTAO_HOVER, num_jogadores, nomes_jogadores, foco_idx, multiplayer_erro_msg):
     mouse_x, mouse_y = pygame.mouse.get_pos()
-    screen.fill(COR_FUNDO_PRINCIPAL)
+    
+    # Gradiente de fundo (PALETA PADRÃO)
+    width, height = screen.get_size()
+    gradiente = criar_gradiente_vertical(width, height, (240, 225, 195), (210, 195, 165))
+    screen.blit(gradiente, (0, 0))
+    
+    # Partículas de fundo
+    tempo = pygame.time.get_ticks()
+    desenhar_particulas_fundo(screen, tempo)
+    
     titulo = FONT_BIG.render("Nomes dos Jogadores", True, COR_TEXTO_CLARO)
     screen.blit(titulo, (screen.get_width()//2 - titulo.get_width()//2, 40))
     bloco_top = 120
@@ -1743,6 +1784,7 @@ def desenhar_config_multiplayer_nomes(screen, FONT_BIG, FONT_MED, FONT_SMALL, CO
         nome_render = FONT_MED.render(nome.upper(), True, COR_TEXTO_CLARO)
         screen.blit(nome_render, (rect.x + (campo_largura - nome_render.get_width())//2, rect.y + 6))
         input_nomes.append((rect, i))
+    
     # Centralizar botões
     btn_w, btn_h = 180, 56
     espacamento = 60
@@ -1750,13 +1792,31 @@ def desenhar_config_multiplayer_nomes(screen, FONT_BIG, FONT_MED, FONT_SMALL, CO
     y_btns = bloco_nomes_top + num_jogadores*(campo_altura + 18) + 48
     btn_voltar_rect = pygame.Rect(centro_x - btn_w - espacamento//2, y_btns, btn_w, btn_h)
     btn_iniciar_rect = pygame.Rect(centro_x + espacamento//2, y_btns, btn_w, btn_h)
+    
+    # Botões com paleta padrão e gradiente sem vazamento
     nomes_ok = all(n.strip() for n in nomes_jogadores[:num_jogadores])
-    cor_btn_iniciar = COR_BOTAO_HOVER if btn_iniciar_rect.collidepoint(mouse_x, mouse_y) and nomes_ok else COR_BOTAO
-    cor_btn_voltar = COR_BOTAO_HOVER if btn_voltar_rect.collidepoint(mouse_x, mouse_y) else COR_BOTAO
-    pygame.draw.rect(screen, cor_btn_iniciar, btn_iniciar_rect, border_radius=14)
-    pygame.draw.rect(screen, COR_BOTAO_HOVER, btn_iniciar_rect, 3, border_radius=14)
-    pygame.draw.rect(screen, cor_btn_voltar, btn_voltar_rect, border_radius=14)
-    pygame.draw.rect(screen, COR_BOTAO_HOVER, btn_voltar_rect, 3, border_radius=14)
+    
+    # Botão iniciar
+    hover_iniciar = btn_iniciar_rect.collidepoint(mouse_x, mouse_y) and nomes_ok
+    if nomes_ok:
+        cor_iniciar_topo = (140, 180, 70) if hover_iniciar else (120, 160, 60)  # Verde da paleta
+        cor_iniciar_baixo = (120, 160, 50) if hover_iniciar else (100, 140, 40)
+        borda_iniciar = (80, 120, 40)
+    else:
+        cor_iniciar_topo = (160, 160, 160)
+        cor_iniciar_baixo = (140, 140, 140)
+        borda_iniciar = (100, 100, 100)
+    
+    aplicar_gradiente_com_bordas(screen, btn_iniciar_rect, cor_iniciar_topo, cor_iniciar_baixo, 14)
+    pygame.draw.rect(screen, borda_iniciar, btn_iniciar_rect, 3, border_radius=14)
+    
+    # Botão voltar
+    hover_voltar = btn_voltar_rect.collidepoint(mouse_x, mouse_y)
+    cor_voltar_topo = (180, 120, 60) if hover_voltar else (160, 100, 50)  # Laranja da paleta
+    cor_voltar_baixo = (160, 100, 40) if hover_voltar else (140, 80, 30)
+    
+    aplicar_gradiente_com_bordas(screen, btn_voltar_rect, cor_voltar_topo, cor_voltar_baixo, 14)
+    pygame.draw.rect(screen, (120, 70, 30), btn_voltar_rect, 3, border_radius=14)
     iniciar_label = FONT_MED.render("Iniciar", True, (60, 60, 60))
     voltar_label = FONT_MED.render("Voltar", True, (60, 60, 60))
     screen.blit(iniciar_label, (btn_iniciar_rect.x + (btn_iniciar_rect.w - iniciar_label.get_width())//2, btn_iniciar_rect.y + 10))
@@ -1767,25 +1827,47 @@ def desenhar_config_multiplayer_nomes(screen, FONT_BIG, FONT_MED, FONT_SMALL, CO
     return btn_iniciar_rect, btn_voltar_rect, input_nomes
 
 def desenhar_espera_multiplayer(screen, FONT_BIG, FONT_MED, COR_FUNDO_PRINCIPAL, COR_TEXTO_CLARO, COR_BOTAO, COR_BOTAO_HOVER, jogador_adivinha):
-    screen.fill(COR_FUNDO_PRINCIPAL)
+    # Gradiente de fundo (PALETA PADRÃO)
+    width, height = screen.get_size()
+    gradiente = criar_gradiente_vertical(width, height, (240, 225, 195), (210, 195, 165))
+    screen.blit(gradiente, (0, 0))
+    
+    # Partículas de fundo
+    tempo = pygame.time.get_ticks()
+    desenhar_particulas_fundo(screen, tempo)
+    
     titulo = FONT_BIG.render("Passe para o próximo jogador!", True, COR_TEXTO_CLARO)
     screen.blit(titulo, (screen.get_width()//2 - titulo.get_width()//2, 100))
     instr = FONT_MED.render(f"{jogador_adivinha}, clique em Pronto para começar", True, COR_TEXTO_CLARO)
     screen.blit(instr, (screen.get_width()//2 - instr.get_width()//2, 200))
+    
     btn_pronto_rect = pygame.Rect(screen.get_width()//2 - 100, 320, 200, 60)
     mouse_x, mouse_y = pygame.mouse.get_pos()
-    cor_btn = COR_BOTAO_HOVER if btn_pronto_rect.collidepoint(mouse_x, mouse_y) else COR_BOTAO
-    pygame.draw.rect(screen, cor_btn, btn_pronto_rect, border_radius=14)
-    pygame.draw.rect(screen, COR_BOTAO_HOVER, btn_pronto_rect, 2, border_radius=14)
+    hover_pronto = btn_pronto_rect.collidepoint(mouse_x, mouse_y)
+    
+    # Botão com paleta padrão e gradiente sem vazamento
+    cor_pronto_topo = (140, 180, 70) if hover_pronto else (120, 160, 60)  # Verde da paleta
+    cor_pronto_baixo = (120, 160, 50) if hover_pronto else (100, 140, 40)
+    
+    aplicar_gradiente_com_bordas(screen, btn_pronto_rect, cor_pronto_topo, cor_pronto_baixo, 14)
+    pygame.draw.rect(screen, (80, 120, 40), btn_pronto_rect, 2, border_radius=14)
     pronto_label = FONT_MED.render("Pronto", True, (60, 60, 60))
     screen.blit(pronto_label, (btn_pronto_rect.x + (btn_pronto_rect.w - pronto_label.get_width())//2, btn_pronto_rect.y + 12))
     return btn_pronto_rect
 
 def desenhar_definir_palavra_multiplayer(screen, FONT_BIG, FONT_MED, cor_input_inativo, jogador_definidor, jogador_adivinha, palavra_atual):
-    screen.fill((249, 235, 199))
-    titulo = FONT_BIG.render(f"{jogador_definidor} define a palavra para {jogador_adivinha}", True, (95, 111, 82))
+    # Gradiente de fundo (PALETA PADRÃO)
+    width, height = screen.get_size()
+    gradiente = criar_gradiente_vertical(width, height, (240, 225, 195), (210, 195, 165))
+    screen.blit(gradiente, (0, 0))
+    
+    # Partículas de fundo
+    tempo = pygame.time.get_ticks()
+    desenhar_particulas_fundo(screen, tempo)
+    
+    titulo = FONT_BIG.render(f"{jogador_definidor} define a palavra para {jogador_adivinha}", True, (120, 100, 80))  # Cor terrosa da paleta
     screen.blit(titulo, (screen.get_width()//2 - titulo.get_width()//2, 80))
-    instr = FONT_MED.render("DIGITE A PALAVRA SECRETA, MÍNIMO 4 LETRAS", True, (95, 111, 82))
+    instr = FONT_MED.render("DIGITE A PALAVRA SECRETA, MÍNIMO 4 LETRAS", True, (120, 100, 80))
     screen.blit(instr, (screen.get_width()//2 - instr.get_width()//2, 180))
     campo_largura = 340
     campo_altura = 54
@@ -1796,10 +1878,15 @@ def desenhar_definir_palavra_multiplayer(screen, FONT_BIG, FONT_MED, cor_input_i
     screen.blit(palavra_render, (input_rect.x + (campo_largura - palavra_render.get_width())//2, input_rect.y + 10))
     btn_confirmar_rect = pygame.Rect(screen.get_width()//2 - 80, 340, 160, 48)
     mouse_x, mouse_y = pygame.mouse.get_pos()
-    cor_btn = (185, 148, 112) if btn_confirmar_rect.collidepoint(mouse_x, mouse_y) else (169, 179, 136)
-    pygame.draw.rect(screen, cor_btn, btn_confirmar_rect, border_radius=12)
-    pygame.draw.rect(screen, (185, 148, 112), btn_confirmar_rect, 2, border_radius=12)
-    confirmar_label = FONT_MED.render("Confirmar", True, (60, 60, 60))
+    hover_confirmar = btn_confirmar_rect.collidepoint(mouse_x, mouse_y)
+    
+    # Botão confirmar com paleta padrão
+    cor_confirmar_topo = (140, 180, 70) if hover_confirmar else (120, 160, 60)  # Verde da paleta
+    cor_confirmar_baixo = (120, 160, 50) if hover_confirmar else (100, 140, 40)
+    
+    aplicar_gradiente_com_bordas(screen, btn_confirmar_rect, cor_confirmar_topo, cor_confirmar_baixo, 12)
+    pygame.draw.rect(screen, (80, 120, 40), btn_confirmar_rect, 2, border_radius=12)
+    confirmar_label = FONT_MED.render("Confirmar", True, (255, 255, 255))
     screen.blit(confirmar_label, (btn_confirmar_rect.x + (btn_confirmar_rect.w - confirmar_label.get_width())//2, btn_confirmar_rect.y + 8))
     return input_rect, btn_confirmar_rect 
 
