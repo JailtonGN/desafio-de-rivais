@@ -1447,13 +1447,17 @@ while True:
                         input_ativo = True
                     else:
                         input_ativo = False
-                    botao_iniciar_nome.checar_evento(event)
+                    # Só processar clique do botão se o nome não estiver vazio
+                    if nome_jogador.strip() != "":
+                        botao_iniciar_nome.checar_evento(event)
                 if event.type == pygame.KEYDOWN:
                     if input_ativo:
                         if SOM_CLIQUE:  # Verificação de segurança
                             SOM_CLIQUE.play()
                         if event.key == pygame.K_RETURN:
-                            ir_para_dificuldade()
+                            # Só permitir avançar se o nome não estiver vazio
+                            if nome_jogador.strip() != "":
+                                ir_para_dificuldade()
                         elif event.key == pygame.K_BACKSPACE:
                             nome_jogador = nome_jogador[:-1]
                         elif len(nome_jogador) < 20 and event.unicode.isprintable():
